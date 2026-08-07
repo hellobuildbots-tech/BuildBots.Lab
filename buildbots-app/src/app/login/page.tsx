@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Mail, Lock, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight, Key } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -18,17 +18,35 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    // Hardcoded credentials fallback for Teacher & Student testing
+    // 👩‍🏫 TEACHER DEMO LOGIN
     if (email === 'nandini@buildbots.com' && password === 'onedirection') {
       router.push('/teacher');
       return;
     }
 
-    if (email === 'mivaan@buildbots.ai' || email === 'tashvi@buildbots.ai') {
+    // 👨‍👩‍👧 PARENT DEMO LOGIN
+    if (email === 'parent@buildbots.ai' && password === 'parent123') {
+      router.push('/parent');
+      return;
+    }
+
+    // 🎓 STUDENT DEMO LOGIN
+    if (
+      (email === 'mivaan@buildbots.ai' && password === 'Mivaan@2026') ||
+      (email === 'tashvi@buildbots.ai' && password === 'Tashvi@2026') ||
+      (email === 'student@buildbots.ai' && password === 'student123')
+    ) {
       router.push('/dashboard');
       return;
     }
 
+    // 🛡️ ADMIN DEMO LOGIN
+    if (email === 'admin@buildbots.ai' && password === 'admin123') {
+      router.push('/admin');
+      return;
+    }
+
+    // Live Supabase Authentication
     const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
@@ -38,7 +56,6 @@ export default function LoginPage() {
       setError(authError.message);
       setLoading(false);
     } else {
-      // Role-based routing redirect
       const user = data.user;
       const role = user?.user_metadata?.role || 'student';
       if (role === 'teacher' || role === 'admin') {
@@ -51,16 +68,58 @@ export default function LoginPage() {
     }
   };
 
+  const quickFill = (e: string, p: string) => {
+    setEmail(e);
+    setPassword(p);
+  };
+
   return (
     <div className="min-h-screen bg-[#08121E] text-white flex items-center justify-center p-6 selection:bg-cyan-500 selection:text-slate-950">
-      <div className="w-full max-w-md p-8 rounded-3xl bg-slate-900/60 border border-cyan-500/20 backdrop-blur-xl shadow-2xl relative overflow-hidden">
+      <div className="w-full max-w-lg p-8 rounded-3xl bg-slate-900/60 border border-cyan-500/20 backdrop-blur-xl shadow-2xl relative overflow-hidden">
         <div className="text-center mb-8">
-          <Link href="/" className="inline-flex items-center gap-3 mb-6">
+          <Link href="/" className="inline-flex items-center gap-3 mb-4">
             <div className="w-12 h-12 rounded-2xl bg-cyan-400 text-slate-950 font-bold text-2xl flex items-center justify-center shadow-lg shadow-cyan-500/30">🤖</div>
             <span className="font-extrabold text-2xl tracking-tight">BuildBots<span className="text-cyan-400">.AI</span></span>
           </Link>
           <h1 className="text-2xl font-extrabold">Welcome Back!</h1>
-          <p className="text-slate-400 text-sm mt-1">Sign in as Student, Teacher, or Parent.</p>
+          <p className="text-slate-400 text-sm mt-1">Sign in as Student, Teacher, Parent, or Admin.</p>
+        </div>
+
+        {/* QUICK DEMO CREDENTIAL CHIPS */}
+        <div className="mb-6 p-4 rounded-2xl bg-slate-800/60 border border-cyan-500/30 space-y-2">
+          <div className="flex items-center gap-2 text-xs font-bold uppercase text-cyan-400 mb-2">
+            <Key className="w-3.5 h-3.5" /> One-Click Test Logins:
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+            <button
+              type="button"
+              onClick={() => quickFill('nandini@buildbots.com', 'onedirection')}
+              className="px-2.5 py-1.5 rounded-lg bg-cyan-500/10 border border-cyan-500/30 text-[11px] font-bold text-cyan-300 hover:bg-cyan-500/20"
+            >
+              👩‍🏫 Teacher
+            </button>
+            <button
+              type="button"
+              onClick={() => quickFill('parent@buildbots.ai', 'parent123')}
+              className="px-2.5 py-1.5 rounded-lg bg-purple-500/10 border border-purple-500/30 text-[11px] font-bold text-purple-300 hover:bg-purple-500/20"
+            >
+              👨‍👩‍👧 Parent
+            </button>
+            <button
+              type="button"
+              onClick={() => quickFill('student@buildbots.ai', 'student123')}
+              className="px-2.5 py-1.5 rounded-lg bg-emerald-500/10 border border-emerald-500/30 text-[11px] font-bold text-emerald-300 hover:bg-emerald-500/20"
+            >
+              🎓 Student
+            </button>
+            <button
+              type="button"
+              onClick={() => quickFill('admin@buildbots.ai', 'admin123')}
+              className="px-2.5 py-1.5 rounded-lg bg-yellow-500/10 border border-yellow-500/30 text-[11px] font-bold text-yellow-300 hover:bg-yellow-500/20"
+            >
+              🛡️ Admin
+            </button>
+          </div>
         </div>
 
         {error && (
@@ -80,7 +139,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm font-medium transition-colors"
-                placeholder="nandini@buildbots.com"
+                placeholder="student@buildbots.ai"
               />
             </div>
           </div>
