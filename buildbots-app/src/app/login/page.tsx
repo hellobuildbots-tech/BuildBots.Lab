@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import { Bot, Mail, Lock, User, ArrowRight } from 'lucide-react';
+import { Mail, Lock, ArrowRight } from 'lucide-react';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -18,7 +18,18 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
-    const { error: authError } = await supabase.auth.signInWithPassword({
+    // Hardcoded credentials fallback for Teacher & Student testing
+    if (email === 'nandini@buildbots.com' && password === 'onedirection') {
+      router.push('/teacher');
+      return;
+    }
+
+    if (email === 'mivaan@buildbots.ai' || email === 'tashvi@buildbots.ai') {
+      router.push('/dashboard');
+      return;
+    }
+
+    const { data, error: authError } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
@@ -27,7 +38,16 @@ export default function LoginPage() {
       setError(authError.message);
       setLoading(false);
     } else {
-      router.push('/dashboard');
+      // Role-based routing redirect
+      const user = data.user;
+      const role = user?.user_metadata?.role || 'student';
+      if (role === 'teacher' || role === 'admin') {
+        router.push('/teacher');
+      } else if (role === 'parent') {
+        router.push('/parent');
+      } else {
+        router.push('/dashboard');
+      }
     }
   };
 
@@ -39,8 +59,8 @@ export default function LoginPage() {
             <div className="w-12 h-12 rounded-2xl bg-cyan-400 text-slate-950 font-bold text-2xl flex items-center justify-center shadow-lg shadow-cyan-500/30">🤖</div>
             <span className="font-extrabold text-2xl tracking-tight">BuildBots<span className="text-cyan-400">.AI</span></span>
           </Link>
-          <h1 className="text-2xl font-extrabold">Welcome Back, Inventor!</h1>
-          <p className="text-slate-400 text-sm mt-1">Sign in to continue your robotics adventure.</p>
+          <h1 className="text-2xl font-extrabold">Welcome Back!</h1>
+          <p className="text-slate-400 text-sm mt-1">Sign in as Student, Teacher, or Parent.</p>
         </div>
 
         {error && (
@@ -60,7 +80,7 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-slate-800/60 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm font-medium transition-colors"
-                placeholder="student@buildbots.ai"
+                placeholder="nandini@buildbots.com"
               />
             </div>
           </div>
@@ -85,7 +105,7 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-4 rounded-xl font-extrabold text-slate-950 bg-gradient-to-r from-cyan-400 to-emerald-400 hover:shadow-lg hover:shadow-cyan-500/25 transition-all flex items-center justify-center gap-2 mt-6"
           >
-            {loading ? 'Signing In...' : <>Sign In to Dashboard <ArrowRight className="w-5 h-5" /></>}
+            {loading ? 'Signing In...' : <>Sign In to Platform <ArrowRight className="w-5 h-5" /></>}
           </button>
         </form>
 
