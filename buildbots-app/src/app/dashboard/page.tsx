@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState } from 'react';
 import Link from 'next/link';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+import { CRMAppSidebar } from '@/components/CRMAppSidebar';
 import { supabase } from '@/lib/supabase';
-import { Zap, Clock, Sparkles, Play, Award, CheckCircle2 } from 'lucide-react';
+import { Zap, Clock, Sparkles, Play, Award, Trophy, BookOpen, CheckCircle2 } from 'lucide-react';
 
 export default function DashboardPage() {
   const [profile, setProfile] = useState<any>(null);
@@ -16,11 +15,9 @@ export default function DashboardPage() {
 
   useEffect(() => {
     async function loadStudentData() {
-      // Get logged in user from Supabase Auth
       const { data: { user } } = await supabase.auth.getUser();
 
       if (user) {
-        // Fetch dynamically from Supabase profiles table
         const { data: userProfile } = await supabase
           .from('profiles')
           .select('*')
@@ -42,7 +39,6 @@ export default function DashboardPage() {
         if (userBadges) setBadges(userBadges);
         if (userStreak) setStreak(userStreak.current_streak);
       } else {
-        // Fallback default student state (e.g., Mivaan / Tashvi demonstration mode)
         setProfile({
           full_name: 'Mivaan Dangayach',
           display_name: 'Mivaan',
@@ -63,86 +59,97 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#08121E] text-white flex items-center justify-center">
-        <div className="text-cyan-400 font-bold text-lg animate-pulse">Loading Student Dashboard...</div>
+        <div className="text-cyan-400 font-bold text-lg animate-pulse">Loading Student OS...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-[#08121E] text-white selection:bg-cyan-500 selection:text-slate-950">
-      <Navbar />
+    <div className="min-h-screen bg-[#08121E] text-white flex selection:bg-cyan-500 selection:text-slate-950">
+      {/* CRM OS SIDEBAR FOR STUDENTS */}
+      <CRMAppSidebar role="student" />
 
-      <main className="pt-28 pb-20 max-w-7xl mx-auto px-6">
-        {/* PERSONALIZED DYNAMIC WELCOME BANNER */}
-        <div className="p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/40 border border-cyan-500/30 relative overflow-hidden mb-10 shadow-2xl">
-          <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
-            <div>
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-3">
-                <Sparkles className="w-3.5 h-3.5" /> Classroom Portal
-              </div>
-              <h1 className="text-3xl md:text-5xl font-extrabold tracking-tight">
-                Hello {profile?.display_name || profile?.full_name} 👋
-              </h1>
-              <p className="text-slate-400 mt-2 text-sm md:text-base">
-                Robot Level: <span className="text-cyan-400 font-bold">Circuit Explorer (Level {profile?.robot_level || 1})</span> • Experience: <span className="text-emerald-400 font-bold">{profile?.experience || 'Beginner'}</span>
-              </p>
-            </div>
+      <main className="flex-1 pl-64 min-h-screen">
+        {/* APP HEADER BAR */}
+        <header className="h-20 border-b border-cyan-500/15 px-8 flex items-center justify-between bg-[#08121E]/80 backdrop-blur-md sticky top-0 z-30">
+          <div>
+            <h1 className="text-xl font-extrabold">Student Operating System</h1>
+            <p className="text-xs text-slate-400">BuildBots AI Academy • Young Inventor Portal</p>
+          </div>
 
-            <Link href="/lessons/month-1/class-1" className="px-6 py-3.5 rounded-full font-extrabold text-sm bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 hover:shadow-lg hover:shadow-cyan-500/30 hover:scale-105 transition-all flex items-center gap-2">
-              <Play className="w-4 h-4 fill-slate-950" /> Start Lesson 1
+          <div className="flex items-center gap-3">
+            <Link href="/lessons/month-1/class-1" className="px-6 py-2.5 rounded-full font-extrabold text-xs bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 hover:shadow-lg hover:shadow-cyan-500/30 hover:scale-105 transition-all flex items-center gap-2">
+              <Play className="w-4 h-4 fill-slate-950" /> Continue Lesson 1
             </Link>
           </div>
-        </div>
+        </header>
 
-        {/* PERSONALIZED METRICS */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 flex items-center justify-center font-bold text-xl">
-              ⭐
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-400 uppercase">Total XP</div>
-              <div className="text-2xl font-extrabold text-white">{profile?.xp || 0} XP</div>
+        <div className="p-8 max-w-7xl mx-auto space-y-8">
+          {/* WELCOME BANNER */}
+          <div className="p-8 rounded-3xl bg-gradient-to-r from-slate-900 via-slate-900/90 to-cyan-950/40 border border-cyan-500/30 relative overflow-hidden shadow-2xl">
+            <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+              <div>
+                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-bold uppercase tracking-wider mb-3">
+                  <Sparkles className="w-3.5 h-3.5" /> Student Academy OS
+                </div>
+                <h2 className="text-3xl md:text-5xl font-extrabold tracking-tight">
+                  Hello {profile?.display_name || profile?.full_name} 👋
+                </h2>
+                <p className="text-slate-400 mt-2 text-sm md:text-base">
+                  Robot Tier: <span className="text-cyan-400 font-bold">Circuit Explorer (Level {profile?.robot_level || 1})</span> • Status: <span className="text-emerald-400 font-bold">Active Inventor</span>
+                </p>
+              </div>
+
+              <Link href="/lessons/month-1/class-1" className="px-6 py-3.5 rounded-full font-extrabold text-sm bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 hover:shadow-lg hover:shadow-cyan-500/30 hover:scale-105 transition-all flex items-center gap-2">
+                <Play className="w-4 h-4 fill-slate-950" /> Start Lesson 1
+              </Link>
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-400 border border-orange-500/30 flex items-center justify-center font-bold text-xl">
-              🔥
+          {/* DYNAMIC METRIC STAT CARDS */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-yellow-500/10 text-yellow-400 border border-yellow-500/30 flex items-center justify-center font-bold text-xl">
+                ⭐
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-400 uppercase">Total XP</div>
+                <div className="text-2xl font-extrabold text-white">{profile?.xp || 0} XP</div>
+              </div>
             </div>
-            <div>
-              <div className="text-xs font-bold text-slate-400 uppercase">Weekly Streak</div>
-              <div className="text-2xl font-extrabold text-white">{streak} Days</div>
+
+            <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-orange-500/10 text-orange-400 border border-orange-500/30 flex items-center justify-center font-bold text-xl">
+                🔥
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-400 uppercase">Weekly Streak</div>
+                <div className="text-2xl font-extrabold text-white">{streak} Days</div>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-xl">
+                🤖
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-400 uppercase">Robot Level</div>
+                <div className="text-xl font-extrabold text-cyan-300">Level {profile?.robot_level || 1}</div>
+              </div>
+            </div>
+
+            <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xl">
+                🏅
+              </div>
+              <div>
+                <div className="text-xs font-bold text-slate-400 uppercase">Badges Earned</div>
+                <div className="text-2xl font-extrabold text-white">{badges.length || 1} Badges</div>
+              </div>
             </div>
           </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 flex items-center justify-center font-bold text-xl">
-              🤖
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-400 uppercase">Robot Level</div>
-              <div className="text-xl font-extrabold text-cyan-300">Level {profile?.robot_level || 1}</div>
-            </div>
-          </div>
-
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800 flex items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 flex items-center justify-center font-bold text-xl">
-              🏅
-            </div>
-            <div>
-              <div className="text-xs font-bold text-slate-400 uppercase">Unlocked Badges</div>
-              <div className="text-2xl font-extrabold text-white">{badges.length || 1} Badges</div>
-            </div>
-          </div>
-        </div>
-
-        {/* TODAY'S LESSON CARD */}
-        <div className="mb-12">
-          <h2 className="text-2xl font-bold mb-6 flex items-center gap-2">
-            <Zap className="w-6 h-6 text-cyan-400" /> Today's Lesson
-          </h2>
-
+          {/* TODAY'S ACTIVE MISSION */}
           <div className="p-8 rounded-3xl bg-slate-900/80 border border-cyan-500/30 flex flex-col lg:flex-row items-center justify-between gap-8">
             <div className="max-w-xl">
               <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-bold uppercase tracking-wider">Month 1 • Class 1</span>
@@ -159,37 +166,36 @@ export default function DashboardPage() {
 
             <div className="w-full lg:w-auto">
               <Link href="/lessons/month-1/class-1" className="block text-center py-3.5 px-8 rounded-full font-extrabold text-sm bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 hover:shadow-lg hover:shadow-cyan-500/25 transition-all">
-                Continue Learning 🚀
+                Launch Interactive Games 🚀
               </Link>
             </div>
           </div>
-        </div>
 
-        {/* BADGES & PROGRESS */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <h3 className="font-bold text-lg mb-4">Progress (0%)</h3>
-            <div className="w-full h-4 bg-slate-800 rounded-full overflow-hidden mb-4">
-              <div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 w-0" />
+          {/* BADGES & CLASS PROGRESS */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <h3 className="font-bold text-lg mb-4">Class 1 Progress</h3>
+              <div className="w-full h-4 bg-slate-800 rounded-full overflow-hidden mb-4">
+                <div className="h-full bg-gradient-to-r from-cyan-400 to-emerald-400 w-0" />
+              </div>
+              <p className="text-xs text-slate-400">Ready to start today's first robotics lesson!</p>
             </div>
-            <p className="text-xs text-slate-400">Ready to play Class 1!</p>
-          </div>
 
-          <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
-            <h3 className="font-bold text-lg mb-4">Unlocked Badge</h3>
-            <div className="flex items-center gap-4">
-              {badges.map((b, idx) => (
-                <div key={idx} className="p-3 rounded-2xl bg-slate-800 text-3xl" title={b.badge_name}>
-                  {b.badge_icon || '🏅'}
-                </div>
-              ))}
-              <div className="p-3 rounded-2xl bg-slate-800/40 text-3xl opacity-30">🔒</div>
+            <div className="p-6 rounded-2xl bg-slate-900/60 border border-slate-800">
+              <h3 className="font-bold text-lg mb-4">Unlocked Trophy Shelf</h3>
+              <div className="flex items-center gap-4">
+                {badges.map((b, idx) => (
+                  <div key={idx} className="p-3.5 rounded-2xl bg-slate-800 text-3xl border border-slate-700" title={b.badge_name}>
+                    {b.badge_icon || '🏅'}
+                  </div>
+                ))}
+                <div className="p-3.5 rounded-2xl bg-slate-800/40 text-3xl opacity-30 border border-slate-800">🔒</div>
+                <div className="p-3.5 rounded-2xl bg-slate-800/40 text-3xl opacity-30 border border-slate-800">🔒</div>
+              </div>
             </div>
           </div>
         </div>
       </main>
-
-      <Footer />
     </div>
   );
 }
