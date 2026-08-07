@@ -55,9 +55,11 @@ export function CRMAppSidebar({ role = 'teacher' }: SidebarProps) {
       <div>
         {/* BRANDING HEADER */}
         <div className="h-20 px-6 flex items-center gap-3 border-b border-cyan-500/15">
-          <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-400 to-emerald-400 text-slate-950 flex items-center justify-center font-black text-lg shadow-lg shadow-cyan-500/20">
-            🤖
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="BuildBots AI Logo" 
+            className="w-9 h-9 object-contain" 
+          />
           <div>
             <span className="font-extrabold text-lg tracking-tight text-white block">
               BuildBots<span className="text-cyan-400"> OS</span>

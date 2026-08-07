@@ -83,7 +83,11 @@ export default function LoginPage() {
       <div className="w-full max-w-md p-8 rounded-3xl bg-slate-900/60 border border-cyan-500/20 backdrop-blur-xl shadow-2xl relative overflow-hidden">
         <div className="text-center mb-8">
           <Link href="/" className="inline-flex items-center gap-3 mb-4">
-            <div className="w-12 h-12 rounded-2xl bg-cyan-400 text-slate-950 font-bold text-2xl flex items-center justify-center shadow-lg shadow-cyan-500/30">🤖</div>
+            <img 
+              src="/logo.png" 
+              alt="BuildBots AI Logo" 
+              className="w-12 h-12 object-contain" 
+            />
             <span className="font-extrabold text-2xl tracking-tight">BuildBots<span className="text-cyan-400">.AI</span></span>
           </Link>
           <h1 className="text-2xl font-extrabold">Student & Teacher Portal</h1>

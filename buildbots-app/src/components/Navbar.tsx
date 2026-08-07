@@ -6,9 +6,11 @@ export function Navbar() {
     <nav className="fixed top-0 left-0 right-0 z-50 bg-[#08121E]/80 backdrop-blur-md border-b border-cyan-500/20">
       <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-emerald-400 flex items-center justify-center text-xl font-black text-slate-950 shadow-lg shadow-cyan-500/25 group-hover:scale-105 transition-transform">
-            🤖
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="BuildBots AI Logo" 
+            className="w-10 h-10 object-contain group-hover:scale-105 transition-transform" 
+          />
           <span className="font-extrabold text-2xl tracking-tight bg-gradient-to-r from-white via-slate-100 to-cyan-300 bg-clip-text text-transparent">
             BuildBots<span className="text-cyan-400">.AI</span>
           </span>
