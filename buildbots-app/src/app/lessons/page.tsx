@@ -2,8 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Navbar } from '@/components/Navbar';
-import { Footer } from '@/components/Footer';
+import { CRMAppSidebar } from '@/components/CRMAppSidebar';
 import { Search, Filter, Play, CheckCircle2, Clock } from 'lucide-react';
 
 export default function LessonLibraryPage() {
@@ -53,85 +52,87 @@ export default function LessonLibraryPage() {
   });
 
   return (
-    <div className="min-h-screen bg-[#08121E] text-white selection:bg-cyan-500 selection:text-slate-950">
-      <Navbar />
+    <div className="min-h-screen bg-[#08121E] text-white flex selection:bg-cyan-500 selection:text-slate-950">
+      <CRMAppSidebar role="student" />
 
-      <main className="pt-28 pb-20 max-w-7xl mx-auto px-6">
-        <div className="mb-10 text-center max-w-2xl mx-auto">
-          <h1 className="text-3xl md:text-5xl font-extrabold mb-4">Lesson Library</h1>
-          <p className="text-slate-400">Explore interactive SaaS robotics lessons for ages 7–14.</p>
-        </div>
+      <main className="flex-1 pl-64 min-h-screen">
+        <header className="h-20 border-b border-cyan-500/15 px-8 flex items-center justify-between bg-[#08121E]/80 backdrop-blur-md sticky top-0 z-30">
+          <div>
+            <h1 className="text-xl font-extrabold">Lesson Library</h1>
+            <p className="text-xs text-slate-400">Interactive SaaS Robotics Lessons & Missions</p>
+          </div>
+        </header>
 
-        {/* SEARCH AND FILTER BAR */}
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4 mb-10 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
-          <div className="relative w-full sm:w-80">
-            <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search lessons..."
-              className="w-full pl-12 pr-4 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm"
-            />
+        <div className="p-8 max-w-7xl mx-auto space-y-8">
+          {/* SEARCH AND FILTER BAR */}
+          <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-slate-900/60 p-4 rounded-2xl border border-slate-800">
+            <div className="relative w-full sm:w-80">
+              <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+              <input
+                type="text"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                placeholder="Search lessons..."
+                className="w-full pl-12 pr-4 py-2.5 rounded-xl bg-slate-800/80 border border-slate-700 text-white placeholder-slate-500 focus:outline-none focus:border-cyan-400 text-sm"
+              />
+            </div>
+
+            <div className="flex items-center gap-2 w-full sm:w-auto">
+              <Filter className="w-4 h-4 text-slate-500" />
+              <span className="text-xs text-slate-400 font-bold uppercase">Difficulty:</span>
+              {['All', 'Beginner', 'Intermediate'].map(d => (
+                <button
+                  key={d}
+                  onClick={() => setFilterDifficulty(d)}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
+                    filterDifficulty === d ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:text-white'
+                  }`}
+                >
+                  {d}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="flex items-center gap-2 w-full sm:w-auto">
-            <Filter className="w-4 h-4 text-slate-500" />
-            <span className="text-xs text-slate-400 font-bold uppercase">Difficulty:</span>
-            {['All', 'Beginner', 'Intermediate'].map(d => (
-              <button
-                key={d}
-                onClick={() => setFilterDifficulty(d)}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${
-                  filterDifficulty === d ? 'bg-cyan-500 text-slate-950' : 'bg-slate-800 text-slate-400 hover:text-white'
-                }`}
-              >
-                {d}
-              </button>
+          {/* LESSON CARDS GRID */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredLessons.map(l => (
+              <div key={l.id} className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between">
+                <div>
+                  <div className="flex items-center justify-between gap-2 mb-4">
+                    <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-bold uppercase">
+                      Month {l.month} • Class {l.classNumber}
+                    </span>
+                    {l.completed ? (
+                      <span className="flex items-center gap-1 text-xs text-emerald-400 font-bold">
+                        <CheckCircle2 className="w-4 h-4" /> Completed
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1 text-xs text-slate-500 font-bold">
+                        <Clock className="w-4 h-4" /> {l.duration}
+                      </span>
+                    )}
+                  </div>
+
+                  <h3 className="text-xl font-bold mb-2">{l.title}</h3>
+                  <p className="text-slate-400 text-sm leading-relaxed mb-6">{l.description}</p>
+                </div>
+
+                <Link
+                  href={l.path}
+                  className={`w-full py-3 rounded-xl font-extrabold text-sm text-center flex items-center justify-center gap-2 transition-all ${
+                    l.path !== '#'
+                      ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 hover:shadow-lg hover:shadow-cyan-500/25'
+                      : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                  }`}
+                >
+                  {l.path !== '#' ? <>Launch Lesson <Play className="w-4 h-4 fill-slate-950" /></> : 'Locked'}
+                </Link>
+              </div>
             ))}
           </div>
         </div>
-
-        {/* LESSON CARDS GRID */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {filteredLessons.map(l => (
-            <div key={l.id} className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between">
-              <div>
-                <div className="flex items-center justify-between gap-2 mb-4">
-                  <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-bold uppercase">
-                    Month {l.month} • Class {l.classNumber}
-                  </span>
-                  {l.completed ? (
-                    <span className="flex items-center gap-1 text-xs text-emerald-400 font-bold">
-                      <CheckCircle2 className="w-4 h-4" /> Completed
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-1 text-xs text-slate-500 font-bold">
-                      <Clock className="w-4 h-4" /> {l.duration}
-                    </span>
-                  )}
-                </div>
-
-                <h3 className="text-xl font-bold mb-2">{l.title}</h3>
-                <p className="text-slate-400 text-sm leading-relaxed mb-6">{l.description}</p>
-              </div>
-
-              <Link
-                href={l.path}
-                className={`w-full py-3 rounded-xl font-extrabold text-sm text-center flex items-center justify-center gap-2 transition-all ${
-                  l.path !== '#'
-                    ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 hover:shadow-lg hover:shadow-cyan-500/25'
-                    : 'bg-slate-800 text-slate-500 cursor-not-allowed'
-                }`}
-              >
-                {l.path !== '#' ? <>Launch Lesson <Play className="w-4 h-4 fill-slate-950" /></> : 'Locked'}
-              </Link>
-            </div>
-          ))}
-        </div>
       </main>
-
-      <Footer />
     </div>
   );
 }
