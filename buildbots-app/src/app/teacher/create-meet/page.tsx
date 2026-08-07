@@ -28,7 +28,8 @@ Please make sure your young inventor is logged into their BuildBots portal:
 🌐 Portal Link: https://hellobuildbots.netlify.app (Select Student Login)
 
 See you in the Secret Inventor's Lab!
-— Coach Nandini | BuildBots AI Academy`;
+— Coach Nandini | BuildBots AI Academy
+📧 Support: hello.buildbots@gmail.com`;
   };
 
   const parentMessageDraft = generateParentMessage();

@@ -36,7 +36,7 @@ export function Footer() {
         <div>
           <h4 className="font-bold text-white mb-4">Support & Contact</h4>
           <p className="text-slate-500 mb-2">Have questions? Reach out anytime.</p>
-          <a href="mailto:support@buildbots.ai" className="text-cyan-400 font-semibold hover:underline">support@buildbots.ai</a>
+          <a href="mailto:hello.buildbots@gmail.com" className="text-cyan-400 font-semibold hover:underline">hello.buildbots@gmail.com</a>
         </div>
       </div>
 
