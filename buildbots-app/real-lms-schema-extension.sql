@@ -1,5 +1,5 @@
 -- ====================================================
--- BUILDBOTS AI - REAL LMS DYNAMIC STUDENT SCHEMA & SEED
+-- BUILDBOTS AI - REAL LMS DYNAMIC STUDENT SCHEMA & TRIGGER
 -- ====================================================
 
 -- 1. EXTEND PROFILES TABLE WITH FULL LMS METADATA
@@ -15,38 +15,37 @@ ADD COLUMN IF NOT EXISTS current_class INT DEFAULT 1,
 ADD COLUMN IF NOT EXISTS experience TEXT DEFAULT 'Beginner',
 ADD COLUMN IF NOT EXISTS xp INT DEFAULT 0;
 
--- 2. SEED REAL CLASSROOM STUDENTS (MIVAAN & TASHVI)
--- (These profiles mirror Supabase Auth users)
-INSERT INTO public.profiles (
-  id, email, full_name, display_name, age, grade, role, robot_level, xp, current_month, current_class, experience
-) VALUES
-(
-  'a0000000-0000-0000-0000-000000000001',
-  'mivaan@buildbots.ai',
-  'Mivaan Dangayach',
-  'Mivaan',
-  7, 2, 'student', 1, 0, 1, 1, 'Beginner'
-),
-(
-  'a0000000-0000-0000-0000-000000000002',
-  'tashvi@buildbots.ai',
-  'Tashvi Khandelwal',
-  'Tashvi',
-  7, 2, 'student', 1, 0, 1, 1, 'Beginner'
-)
-ON CONFLICT (email) DO UPDATE SET
-  full_name = EXCLUDED.full_name,
-  age = EXCLUDED.age,
-  grade = EXCLUDED.grade;
+-- 2. AUTOMATIC PROFILE CREATION TRIGGER ON AUTH SIGNUP
+-- Creates profile, initial streak, and "New Inventor" badge when a student signs up or is created in Supabase Auth
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (id, email, full_name, display_name, role, robot_level, xp, current_month, current_class, experience)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    COALESCE(NEW.raw_user_meta_data->>'full_name', SPLIT_PART(NEW.email, '@', 1)),
+    COALESCE(NEW.raw_user_meta_data->>'display_name', SPLIT_PART(NEW.email, '@', 1)),
+    'student', 1, 0, 1, 1, 'Beginner'
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    email = EXCLUDED.email,
+    full_name = EXCLUDED.full_name;
 
--- SEED INITIAL NEW INVENTOR BADGES
-INSERT INTO public.badges (student_id, badge_name, badge_icon) VALUES
-('a0000000-0000-0000-0000-000000000001', 'New Inventor', '🏅'),
-('a0000000-0000-0000-0000-000000000002', 'New Inventor', '🏅')
-ON CONFLICT DO NOTHING;
+  INSERT INTO public.badges (student_id, badge_name, badge_icon)
+  VALUES (NEW.id, 'New Inventor', '🏅')
+  ON CONFLICT DO NOTHING;
 
--- SEED INITIAL STREAKS
-INSERT INTO public.streaks (student_id, current_streak, longest_streak) VALUES
-('a0000000-0000-0000-0000-000000000001', 0, 0),
-('a0000000-0000-0000-0000-000000000002', 0, 0)
-ON CONFLICT (student_id) DO NOTHING;
+  INSERT INTO public.streaks (student_id, current_streak, longest_streak)
+  VALUES (NEW.id, 0, 0)
+  ON CONFLICT (student_id) DO NOTHING;
+
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
+
+-- Attach trigger to auth.users table
+DROP TRIGGER IF EXISTS on_auth_user_created ON auth.users;
+CREATE TRIGGER on_auth_user_created
+  AFTER INSERT ON auth.users
+  FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
