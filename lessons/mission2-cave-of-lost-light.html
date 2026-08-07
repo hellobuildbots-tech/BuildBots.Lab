@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Mission 2: Repair Byte's Flashlight — BuildBots AI</title>
+<meta name="description" content="An interactive BuildBots AI lesson about switches, open circuits and closed circuits.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   BUILDBOTS AI — MISSION 2: THE CAVE OF LOST LIGHT
+   Design tokens
+   ============================================================ */
+:root{
+  --cave-1:#130a29;
+  --cave-2:#241350;
+  --cave-3:#3a1e72;
+  --cave-4:#552a8f;
+  --glow-gold:#ffc857;
+  --glow-amber:#ff9f1c;
+  --flow-teal:#4fd9d0;
+  --flow-teal-deep:#1b9a91;
+  --byte-coral:#ff7a6b;
+  --byte-body:#4fd0d6;
+  --byte-body-dk:#2fa6ad;
+  --cream:#fff8ea;
+  --ink:#241443;
+  --ink-soft:#5b4a86;
+  --success:#6bcb77;
+  --danger:#ff6b6b;
+  --glass-bg: rgba(255,255,255,0.09);
+  --glass-bg-strong: rgba(255,255,255,0.14);
+  --glass-border: rgba(255,255,255,0.28);
+  --radius-lg:28px;
+  --radius-md:20px;
+  --radius-sm:14px;
+  --font-display:'Baloo 2', 'Segoe UI Rounded', system-ui, sans-serif;
+  --font-body:'Nunito', 'Segoe UI', system-ui, sans-serif;
+  --shadow-pop: 0 10px 30px rgba(15,6,40,0.45);
+  --ease-bounce: cubic-bezier(.34,1.56,.64,1);
+}
+
+*,*::before,*::after{ box-sizing:border-box; }
+html,body{ height:100%; }
+body{
+  margin:0;
+  font-family:var(--font-body);
+  color:var(--cream);
+  background:var(--cave-1);
+  overflow-x:hidden;
+  -webkit-tap-highlight-color: transparent;
+}
+h1,h2,h3,h4{ font-family:var(--font-display); margin:0; letter-spacing:.2px; }
+p{ margin:0; }
+button{ font-family:inherit; cursor:pointer; }
+button:focus-visible, [tabindex]:focus-visible, .flip-card:focus-visible, .chip:focus-visible{
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+::selection{ background:var(--glow-gold); color:var(--ink); }
+
+@media (prefers-reduced-motion: reduce){
+  *{ animation-duration:0.01ms !important; animation-iteration-count:1 !important; transition-duration:0.01ms !important; scroll-behavior:auto !important; }
+}
+
+/* ---------- App shell / cave atmosphere ---------- */
+#app{
+  position:relative;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
+  isolation:isolate;
+}
+.cave-bg{
+  position:fixed; inset:0; z-index:-2;
+  background:
+    radial-gradient(1100px 700px at 15% -10%, var(--cave-4) 0%, transparent 60%),
+    radial-gradient(900px 600px at 110% 10%, #6a3aa8 0%, transparent 55%),
+    linear-gradient(180deg, var(--cave-1) 0%, var(--cave-2) 55%, var(--cave-1) 100%);
+  transition: background 1.4s ease, filter 1.4s ease;
+}
+#app.lit .cave-bg{
+  background:
+    radial-gradient(1200px 800px at 50% -10%, #ffdf9b 0%, transparent 55%),
+    radial-gradient(900px 700px at 90% 100%, #ff9f6b 0%, transparent 55%),
+    linear-gradient(180deg, #3a2560 0%, #6a3a6f 55%, #2c1a4d 100%);
+}
+.crystals{ position:fixed; inset:0; z-index:-1; pointer-events:none; }
+.crystal{
+  position:absolute; border-radius:50%;
+  background: radial-gradient(circle, rgba(255,255,255,0.9), rgba(180,140,255,0));
+  filter: blur(0.5px);
+  animation: twinkle 3.6s ease-in-out infinite;
+  opacity:.55;
+}
+@keyframes twinkle{ 0%,100%{ opacity:.25; transform:scale(1);} 50%{ opacity:.9; transform:scale(1.35);} }
+
+/* ---------- HUD ---------- */
+.hud{
+  display:flex; align-items:center; gap:14px;
+  padding:12px 16px;
+  background: rgba(19,10,41,0.55);
+  backdrop-filter: blur(10px);
+  border-bottom:1px solid var(--glass-border);
+  position:sticky; top:0; z-index:50;
+}
+.mission-tag{
+  font-family:var(--font-display); font-weight:700; font-size:14px;
+  background: linear-gradient(135deg, var(--byte-coral), var(--glow-amber));
+  padding:8px 14px; border-radius:999px; white-space:nowrap;
+  box-shadow: 0 4px 12px rgba(255,122,107,0.35);
+  flex-shrink:0;
+}
+.circuit-progress{
+  flex:1; display:flex; align-items:center; gap:2px; min-width:0;
+  overflow-x:auto; scrollbar-width:none; padding:6px 2px;
+}
+.circuit-progress::-webkit-scrollbar{ display:none; }
+.node-btn{
+  flex-shrink:0; width:30px; height:30px; border-radius:50%;
+  border:2px solid rgba(255,255,255,0.35);
+  background: rgba(255,255,255,0.08);
+  display:flex; align-items:center; justify-content:center;
+  font-size:13px; color:rgba(255,255,255,0.6);
+  transition: all .3s var(--ease-bounce);
+  position:relative;
+}
+.node-btn[data-state="done"]{
+  background: linear-gradient(135deg, var(--glow-gold), var(--glow-amber));
+  border-color: var(--glow-gold); color:var(--ink); box-shadow:0 0 12px rgba(255,200,87,0.7);
+}
+.node-btn[data-state="current"]{
+  border-color: var(--flow-teal); background: rgba(79,217,208,0.25); color:#fff;
+  box-shadow:0 0 0 4px rgba(79,217,208,0.25), 0 0 14px rgba(79,217,208,0.8);
+  animation: pulseNode 1.6s ease-in-out infinite;
+}
+@keyframes pulseNode{ 0%,100%{ transform:scale(1);} 50%{ transform:scale(1.12);} }
+.wire{
+  flex-shrink:0; width:16px; height:4px; border-radius:2px;
+  background: rgba(255,255,255,0.18);
+}
+.wire.charged{
+  background: repeating-linear-gradient(90deg, var(--glow-gold) 0 6px, var(--flow-teal) 6px 12px);
+  background-size:200% 100%;
+  animation: flow 1s linear infinite;
+  box-shadow:0 0 8px rgba(255,200,87,0.7);
+}
+@keyframes flow{ from{ background-position:0 0;} to{ background-position:-24px 0;} }
+.xp-counter{
+  flex-shrink:0; font-family:var(--font-display); font-weight:700; font-size:14px;
+  background: rgba(255,255,255,0.1); border:1px solid var(--glass-border);
+  padding:8px 12px; border-radius:999px; display:flex; align-items:center; gap:6px;
+}
+#xpVal{ color:var(--glow-gold); }
+.sound-btn{
+  flex-shrink:0; width:36px; height:36px; border-radius:50%; border:1px solid var(--glass-border);
+  background: rgba(255,255,255,0.1); color:#fff; font-size:16px; display:flex; align-items:center; justify-content:center;
+}
+
+/* ---------- Stage ---------- */
+.stage{
+  flex:1; display:flex; align-items:center; justify-content:center;
+  padding: 22px 16px 8px;
+  position:relative;
+}
+.scene{
+  width:100%; max-width:880px;
+  animation: sceneIn .5s var(--ease-bounce);
+}
+@keyframes sceneIn{ from{ opacity:0; transform:translateY(18px) scale(.98);} to{ opacity:1; transform:none; } }
+
+.card{
+  background: var(--glass-bg);
+  border:1px solid var(--glass-border);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(14px);
+  box-shadow: var(--shadow-pop);
+  padding: 22px 22px 26px;
+}
+.eyebrow{
+  font-family:var(--font-display); font-weight:700; font-size:13px; letter-spacing:1px; text-transform:uppercase;
+  color:var(--glow-gold); display:flex; align-items:center; gap:8px; margin-bottom:6px;
+}
+.scene-title{ font-size:clamp(24px,5vw,34px); font-weight:800; margin-bottom:4px; }
+.scene-sub{ color:rgba(255,248,234,0.75); font-weight:600; font-size:15px; margin-bottom:18px; }
+
+.byte-row{ display:flex; gap:18px; align-items:flex-end; flex-wrap:wrap; }
+.byte-wrap{ flex-shrink:0; width:150px; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.4)); }
+.byte-wrap svg{ width:100%; height:auto; display:block; }
+.bubble{
+  flex:1; min-width:220px;
+  background: var(--cream); color:var(--ink);
+  border-radius: var(--radius-md); border-bottom-left-radius:6px;
+  padding:16px 18px; font-weight:700; font-size:17px; line-height:1.4;
+  position:relative; box-shadow: var(--shadow-pop);
+  min-height:64px; display:flex; align-items:center;
+}
+.bubble .tail{
+  position:absolute; left:-10px; bottom:14px; width:0;height:0;
+  border:10px solid transparent; border-right-color:var(--cream); border-left:0;
+}
+.bubble-next{
+  margin-left:auto; flex-shrink:0; background:var(--flow-teal-deep); color:#fff; border:none;
+  width:34px;height:34px;border-radius:50%; font-size:16px; box-shadow:0 3px 8px rgba(0,0,0,0.25);
+}
+
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:16px;
+  padding:13px 26px; border-radius:999px; border:none; color:var(--ink);
+  background: linear-gradient(135deg, var(--glow-gold), var(--glow-amber));
+  box-shadow: 0 8px 0 #b56f00, 0 10px 20px rgba(0,0,0,0.3);
+  transition: transform .12s, box-shadow .12s;
+}
+.btn:active{ transform:translateY(6px); box-shadow:0 2px 0 #b56f00, 0 4px 10px rgba(0,0,0,0.3); }
+.btn.secondary{
+  background: rgba(255,255,255,0.12); color:#fff; border:1px solid var(--glass-border);
+  box-shadow: 0 6px 0 rgba(0,0,0,0.25);
+}
+.btn.secondary:active{ box-shadow:0 1px 0 rgba(0,0,0,0.25); }
+.btn.teal{ background:linear-gradient(135deg, var(--flow-teal), var(--flow-teal-deep)); color:#08302d; box-shadow:0 8px 0 #0e6b64, 0 10px 20px rgba(0,0,0,0.3); }
+.btn:disabled{ opacity:.4; cursor:not-allowed; filter:grayscale(.3); }
+.btn-row{ display:flex; gap:12px; flex-wrap:wrap; margin-top:18px; }
+
+/* ---------- Nav ---------- */
+.scene-nav{
+  display:flex; align-items:center; justify-content:space-between; gap:10px;
+  padding:14px 18px 20px; position:sticky; bottom:0;
+  background: linear-gradient(180deg, transparent, rgba(19,10,41,0.85) 30%);
+}
+.nav-btn{
+  font-family:var(--font-display); font-weight:700; font-size:15px;
+  padding:12px 20px; border-radius:999px; border:1px solid var(--glass-border);
+  background: rgba(255,255,255,0.1); color:#fff;
+  transition: transform .12s;
+}
+.nav-btn:active{ transform:scale(.95); }
+.nav-btn.next{ background:linear-gradient(135deg, var(--flow-teal), var(--flow-teal-deep)); color:#08302d; border:none; box-shadow:0 6px 16px rgba(79,217,208,0.4); }
+.nav-btn:disabled{ opacity:.35; cursor:not-allowed; }
+.scene-caption{ font-weight:700; font-size:13px; color:rgba(255,248,234,0.6); text-align:center; flex:1; }
+
+/* ---------- Chips / badges ---------- */
+.chip{
+  display:inline-flex; align-items:center; gap:6px; font-weight:700; font-size:13px;
+  padding:7px 13px; border-radius:999px; background:rgba(255,255,255,0.12); border:1px solid var(--glass-border);
+  color:#fff;
+}
+.chip.gold{ background:rgba(255,200,87,0.22); border-color:var(--glow-gold); color:var(--glow-gold); }
+.chip.done{ background:rgba(107,203,119,0.25); border-color:var(--success); color:#c8f7cc; }
+
+/* ---------- Generic grid helpers ---------- */
+.grid2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+@media (max-width:620px){ .grid2{ grid-template-columns:1fr; } }
+
+/* ============ SCENE 1: STORY ============ */
+.mission-card{
+  margin-top:18px; background:linear-gradient(135deg, rgba(255,200,87,0.18), rgba(255,122,107,0.12));
+  border:1.5px dashed var(--glow-gold); border-radius:var(--radius-md); padding:16px 18px;
+  display:flex; align-items:center; gap:14px; opacity:0; transform:translateY(10px);
+  transition:opacity .5s, transform .5s;
+}
+.mission-card.show{ opacity:1; transform:none; }
+.mission-card .icon{ font-size:34px; flex-shrink:0; }
+
+/* ============ SCENE 2: STOP/GO GAME ============ */
+.loop-wrap{ display:flex; flex-direction:column; align-items:center; gap:16px; margin-top:6px;}
+.loop-svg{ width:min(320px,80vw); height:auto; }
+.electron{ transform-origin:150px 150px; }
+.big-switch{
+  display:flex; align-items:center; gap:14px; background:rgba(255,255,255,0.08);
+  border:1px solid var(--glass-border); border-radius:999px; padding:10px 10px 10px 20px;
+}
+.toggle{
+  width:74px; height:38px; border-radius:999px; background:#4a3a72; position:relative; border:none; flex-shrink:0;
+  transition:background .25s;
+}
+.toggle .knob{
+  position:absolute; top:3px; left:3px; width:32px; height:32px; border-radius:50%;
+  background:#fff; transition: transform .25s var(--ease-bounce); box-shadow:0 2px 6px rgba(0,0,0,.3);
+}
+.toggle[aria-pressed="true"]{ background: var(--success); }
+.toggle[aria-pressed="true"] .knob{ transform:translateX(36px); }
+.toggle-label{ font-weight:800; font-family:var(--font-display); }
+.mcq-row{ display:flex; gap:10px; flex-wrap:wrap; margin-top:14px; }
+.mcq-opt{
+  flex:1; min-width:160px; padding:14px; border-radius:var(--radius-sm); border:2px solid var(--glass-border);
+  background:rgba(255,255,255,0.08); color:#fff; font-weight:700; text-align:left; font-size:15px;
+}
+.mcq-opt.correct{ border-color:var(--success); background:rgba(107,203,119,0.28); }
+.mcq-opt.wrong{ border-color:var(--danger); background:rgba(255,107,107,0.22); }
+
+/* ============ SCENE 3: DISCUSSION FLIP CARDS ============ */
+.flip-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; margin-top:8px; }
+@media (max-width:560px){ .flip-grid{ grid-template-columns:1fr; } }
+.flip-card{ perspective:1000px; height:150px; }
+.flip-inner{ position:relative; width:100%; height:100%; transition:transform .6s var(--ease-bounce); transform-style:preserve-3d; border-radius:var(--radius-sm); }
+.flip-card.flipped .flip-inner{ transform:rotateY(180deg); }
+.flip-face{
+  position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--radius-sm);
+  padding:14px; display:flex; align-items:center; justify-content:center; text-align:center; font-weight:700;
+  box-shadow: var(--shadow-pop);
+}
+.flip-front{ background:linear-gradient(135deg,var(--cave-4),var(--cave-3)); border:1px solid var(--glass-border); font-size:14px; }
+.flip-front .qnum{ position:absolute; top:8px; left:10px; font-family:var(--font-display); color:var(--glow-gold); font-size:12px; }
+.flip-back{ background:var(--cream); color:var(--ink); transform:rotateY(180deg); font-size:13.5px; }
+
+/* ============ SCENE 4: THEORY CIRCUIT DIAGRAM ============ */
+.theory-wrap{ display:flex; flex-direction:column; align-items:center; gap:14px; }
+.circuit-svg{ width:min(420px,90vw); height:auto; }
+.concept-list{ display:grid; grid-template-columns:1fr 1fr; gap:10px; width:100%; margin-top:6px;}
+@media (max-width:560px){ .concept-list{ grid-template-columns:1fr; } }
+.concept-chip{
+  background:rgba(255,255,255,0.08); border:1px solid var(--glass-border); border-radius:var(--radius-sm);
+  padding:12px 14px; font-weight:700; font-size:13.5px; display:flex; gap:8px; align-items:flex-start;
+}
+.concept-chip .star{ color:var(--glow-gold); flex-shrink:0; }
+
+/* ============ SCENE 5: DRAWING ============ */
+.tabs{ display:flex; gap:8px; margin-bottom:10px; }
+.tab-btn{
+  flex:1; padding:11px; border-radius:999px; border:2px solid var(--glass-border); background:rgba(255,255,255,0.06); color:#fff; font-weight:800; font-family:var(--font-display); font-size:14px;
+}
+.tab-btn.active{ background:linear-gradient(135deg,var(--glow-gold),var(--glow-amber)); color:var(--ink); border-color:var(--glow-gold); }
+.canvas-wrap{ background:var(--cream); border-radius:var(--radius-md); overflow:hidden; box-shadow:var(--shadow-pop); position:relative; touch-action:none; }
+canvas.draw-canvas{ width:100%; height:280px; display:block; cursor:crosshair; }
+.palette{ display:flex; gap:8px; align-items:center; margin-top:12px; flex-wrap:wrap; }
+.swatch{ width:32px; height:32px; border-radius:50%; border:3px solid rgba(255,255,255,0.5); flex-shrink:0; }
+.swatch.active{ border-color:#fff; box-shadow:0 0 0 3px var(--glow-gold); }
+.tool-btn{ padding:9px 14px; border-radius:999px; border:1px solid var(--glass-border); background:rgba(255,255,255,0.1); color:#fff; font-weight:700; font-size:13px; }
+.checklist{ display:flex; gap:8px; flex-wrap:wrap; margin-top:14px; }
+.check-chip{ padding:8px 13px; border-radius:999px; border:2px solid var(--glass-border); background:rgba(255,255,255,0.06); font-weight:700; font-size:13px; color:#fff; }
+.check-chip.on{ background:rgba(107,203,119,0.3); border-color:var(--success); }
+
+/* ============ SCENE 6: HARDWARE ============ */
+.materials-tray{ display:flex; gap:10px; overflow-x:auto; padding:6px 2px 14px; }
+.material-pill{ flex-shrink:0; background:rgba(255,255,255,0.08); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:10px 14px; text-align:center; min-width:78px; }
+.material-pill .ic{ font-size:26px; display:block; margin-bottom:4px; }
+.material-pill span.lbl{ font-size:11px; font-weight:700; }
+.step-list{ display:flex; flex-direction:column; gap:10px; }
+.step-item{ display:flex; gap:12px; align-items:flex-start; background:rgba(255,255,255,0.06); border:1px solid var(--glass-border); border-radius:var(--radius-sm); padding:12px 14px; transition:background .2s; }
+.step-item.done{ background:rgba(107,203,119,0.16); border-color:var(--success); }
+.step-check{ flex-shrink:0; width:28px; height:28px; border-radius:50%; border:2px solid var(--glass-border); background:rgba(255,255,255,0.08); display:flex; align-items:center; justify-content:center; font-size:14px; }
+.step-item.done .step-check{ background:var(--success); border-color:var(--success); color:#0b3a12; }
+.step-text{ font-size:14.5px; font-weight:600; line-height:1.4; }
+.safety-note{ margin-top:14px; background:rgba(255,159,28,0.15); border:1px solid var(--glow-amber); border-radius:var(--radius-sm); padding:10px 14px; font-size:13px; font-weight:700; display:flex; gap:8px; align-items:center; }
+
+/* ============ SCENE 7: CHALLENGE ============ */
+.challenge-flash-wrap{ display:flex; flex-direction:column; align-items:center; gap:14px; }
+.flash-svg{ width:150px; }
+.count-ring{ display:flex; gap:8px; }
+.count-dot{ width:16px; height:16px; border-radius:50%; background:rgba(255,255,255,0.2); border:2px solid var(--glass-border); }
+.count-dot.on{ background:var(--glow-gold); border-color:var(--glow-gold); box-shadow:0 0 8px var(--glow-gold); }
+.predict-box{ margin-top:18px; padding-top:16px; border-top:1px dashed var(--glass-border); }
+.predict-buttons{ display:flex; gap:12px; margin-top:12px; }
+.predict-buttons .btn{ flex:1; }
+
+/* ============ SCENE 8: REFLECTION ============ */
+.reflect-card{ background:rgba(255,255,255,0.07); border:1px solid var(--glass-border); border-radius:var(--radius-md); padding:18px; }
+.reflect-dots{ display:flex; gap:5px; justify-content:center; margin-top:14px; flex-wrap:wrap; }
+.rdot{ width:8px; height:8px; border-radius:50%; background:rgba(255,255,255,0.25); }
+.rdot.seen{ background:var(--glow-gold); }
+.rdot.current{ background:var(--flow-teal); transform:scale(1.4); }
+.reflect-input{ width:100%; margin-top:12px; border-radius:var(--radius-sm); border:1px solid var(--glass-border); background:rgba(255,255,255,0.08); color:#fff; padding:10px 12px; font-family:inherit; font-size:14px; resize:vertical; min-height:56px; }
+.reflect-input::placeholder{ color:rgba(255,255,255,0.5); }
+
+/* ============ SCENE 9: CELEBRATION ============ */
+.celebrate-wrap{ text-align:center; }
+.badge-pop{
+  width:140px; height:140px; margin:10px auto 6px; border-radius:50%;
+  background:radial-gradient(circle at 35% 30%, #fff6d8, var(--glow-gold) 55%, var(--glow-amber) 100%);
+  display:flex; align-items:center; justify-content:center; font-size:56px;
+  box-shadow:0 0 0 8px rgba(255,200,87,0.18), 0 12px 30px rgba(0,0,0,0.4);
+  animation: badgePop .8s var(--ease-bounce);
+}
+@keyframes badgePop{ 0%{ transform:scale(0) rotate(-40deg); opacity:0;} 60%{ transform:scale(1.15) rotate(8deg);} 100%{ transform:scale(1) rotate(0);} }
+.cert{ background:var(--cream); color:var(--ink); border-radius:var(--radius-md); padding:22px; margin-top:18px; text-align:center; box-shadow:var(--shadow-pop); }
+.cert h3{ font-size:22px; }
+.cert .line{ width:60px; height:3px; background:var(--glow-amber); margin:8px auto 14px; border-radius:2px; }
+#confettiCanvas{ position:fixed; inset:0; pointer-events:none; z-index:80; }
+
+/* ============ SCENE 10: HOMEWORK ============ */
+.homework-card{ background:linear-gradient(160deg, rgba(255,255,255,0.1), rgba(255,255,255,0.04)); border:1.5px solid var(--glass-border); border-radius:var(--radius-lg); padding:20px; }
+.hw-list{ display:flex; flex-direction:column; gap:8px; margin-top:14px; }
+.hw-item{ display:flex; align-items:center; gap:10px; background:rgba(255,255,255,0.06); border-radius:var(--radius-sm); padding:10px 12px; }
+.hw-item input[type=checkbox]{ width:20px; height:20px; accent-color:var(--glow-gold); flex-shrink:0; }
+.hw-item input[type=text]{ flex:1; background:transparent; border:none; border-bottom:1px solid var(--glass-border); color:#fff; font-family:inherit; font-size:14px; padding:4px 2px; }
+.hw-item input[type=text]::placeholder{ color:rgba(255,255,255,0.45); }
+
+/* byte mood elements */
+.byte-eye-happy, .byte-eye-worried, .byte-mouth-sad, .byte-mouth-happy, .byte-mouth-worried, .byte-mouth-excited, .byte-spark{ display:none; }
+.mood-happy .byte-eye-normal, .mood-excited .byte-eye-normal, .mood-proud .byte-eye-normal{ display:none; }
+.mood-happy .byte-eye-happy, .mood-excited .byte-eye-happy, .mood-proud .byte-eye-happy{ display:block; }
+.mood-worried .byte-eye-normal{ display:none; }
+.mood-worried .byte-eye-worried{ display:block; }
+.mood-sad .byte-mouth-normal, .mood-worried .byte-mouth-normal, .mood-happy .byte-mouth-normal, .mood-excited .byte-mouth-normal, .mood-proud .byte-mouth-normal, .mood-thinking .byte-mouth-normal{ display:none; }
+.mood-sad .byte-mouth-sad{ display:block; }
+.mood-worried .byte-mouth-worried{ display:block; }
+.mood-happy .byte-mouth-happy, .mood-proud .byte-mouth-happy{ display:block; }
+.mood-excited .byte-mouth-excited{ display:block; }
+.mood-excited .byte-spark, .mood-proud .byte-spark{ display:block; }
+.byte-antenna-tip{ transition: fill .3s, filter .3s; }
+.mood-sad .byte-antenna-tip, .mood-worried .byte-antenna-tip{ fill:#7a6aa8; }
+.mood-happy .byte-antenna-tip, .mood-excited .byte-antenna-tip, .mood-proud .byte-antenna-tip{ fill:var(--glow-gold); filter:drop-shadow(0 0 6px var(--glow-gold)); }
+.byte-svg{ animation: byteFloat 3.4s ease-in-out infinite; }
+@keyframes byteFloat{ 0%,100%{ transform:translateY(0);} 50%{ transform:translateY(-6px);} }
+.byte-flash-beam{ transition: opacity .3s; }
+.byte-lit .byte-flash-beam{ opacity:1; }
+.byte-unlit .byte-flash-beam{ opacity:0; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div class="cave-bg" aria-hidden="true"></div>
+  <div class="crystals" id="crystals" aria-hidden="true"></div>
+
+  <header class="hud">
+    <span class="mission-tag">🔦 Mission 2</span>
+    <div class="circuit-progress" id="circuitProgress" role="list" aria-label="Lesson progress"></div>
+    <div class="xp-counter"><span aria-hidden="true">⚡</span><span id="xpVal">0</span> XP</div>
+    <button class="sound-btn" id="soundBtn" aria-pressed="true" aria-label="Toggle sound">🔊</button>
+  </header>
+
+  <main class="stage" id="stage" aria-live="polite"></main>
+
+  <nav class="scene-nav">
+    <button class="nav-btn back" id="backBtn">◀ Back</button>
+    <div class="scene-caption" id="sceneCaption"></div>
+    <button class="nav-btn next" id="nextBtn">Next ▶</button>
+  </nav>
+</div>
+
+<canvas id="confettiCanvas" aria-hidden="true"></canvas>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   AUDIO — tiny synth sound effects, no external files
+   ============================================================ */
+let audioCtx = null, soundOn = true;
+function ctx(){ if(!audioCtx){ try{ audioCtx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } return audioCtx; }
+function tone(freq,dur,type,vol,delay){
+  if(!soundOn) return;
+  const c = ctx(); if(!c) return;
+  const t0 = c.currentTime + (delay||0);
+  const osc = c.createOscillator(), gain = c.createGain();
+  osc.type = type||'sine'; osc.frequency.setValueAtTime(freq, t0);
+  gain.gain.setValueAtTime(0, t0);
+  gain.gain.linearRampToValueAtTime(vol||0.18, t0+0.02);
+  gain.gain.exponentialRampToValueAtTime(0.001, t0+dur);
+  osc.connect(gain); gain.connect(c.destination);
+  osc.start(t0); osc.stop(t0+dur+0.02);
+}
+const S = {
+  click: ()=> tone(520,0.09,'triangle',0.15),
+  toggleOn: ()=>{ tone(440,0.09,'square',0.12); tone(660,0.12,'square',0.1,0.05); },
+  toggleOff: ()=> tone(220,0.14,'sawtooth',0.12),
+  flip: ()=> tone(600,0.08,'sine',0.12),
+  correct: ()=>{ tone(523,0.12,'sine',0.16); tone(659,0.12,'sine',0.16,0.1); tone(784,0.18,'sine',0.18,0.2); },
+  wrong: ()=>{ tone(220,0.2,'sawtooth',0.14); tone(180,0.24,'sawtooth',0.12,0.12); },
+  spark: ()=> tone(900,0.06,'sine',0.1),
+  complete: ()=>{ tone(392,0.1,'sine',0.15); tone(523,0.1,'sine',0.15,0.1); tone(659,0.1,'sine',0.15,0.2); tone(880,0.24,'sine',0.18,0.32); },
+  celebrate: ()=>{ [523,659,784,988,1175].forEach((f,i)=> tone(f,0.22,'sine',0.16,i*0.11)); }
+};
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  idx: 0,
+  xp: 0,
+  maxReached: 0,
+  completed: new Array(10).fill(false)
+};
+
+function addXP(n){
+  state.xp += n;
+  document.getElementById('xpVal').textContent = state.xp;
+  const el = document.getElementById('xpVal').parentElement;
+  el.animate([{transform:'scale(1.3)'},{transform:'scale(1)'}], {duration:320, easing:'ease-out'});
+}
+function markComplete(i, xp){
+  if(state.completed[i]) return;
+  state.completed[i] = true;
+  if(xp) addXP(xp);
+  S.complete();
+  renderProgress();
+  updateNav();
+}
+
+/* ============================================================
+   BYTE MASCOT (reusable SVG)
+   ============================================================ */
+function byteSVG(mood, opts){
+  mood = mood || 'idle';
+  const lit = opts && opts.lit;
+  return `
+  <svg class="byte-svg mood-${mood} ${lit? 'byte-lit':'byte-unlit'}" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Robot Byte, feeling ${mood}">
+    <defs>
+      <linearGradient id="bodyGrad" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#6be3e8"/><stop offset="100%" stop-color="${'var(--byte-body-dk)'.startsWith('var')?'#2fa6ad':'#2fa6ad'}"/>
+      </linearGradient>
+      <radialGradient id="headGrad" cx="35%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="#8ff0f2"/><stop offset="100%" stop-color="#3ec9c4"/>
+      </radialGradient>
+    </defs>
+    <ellipse cx="100" cy="214" rx="58" ry="9" fill="rgba(0,0,0,0.35)"/>
+    <!-- antenna -->
+    <line x1="100" y1="16" x2="100" y2="34" stroke="#8a7ac0" stroke-width="4" stroke-linecap="round"/>
+    <circle class="byte-antenna-tip" cx="100" cy="12" r="8" fill="#7a6aa8"/>
+    <!-- legs -->
+    <rect x="70" y="184" width="18" height="22" rx="8" fill="#2b2158"/>
+    <rect x="112" y="184" width="18" height="22" rx="8" fill="#2b2158"/>
+    <!-- body -->
+    <rect x="52" y="106" width="96" height="86" rx="26" fill="url(#bodyGrad)"/>
+    <rect x="68" y="122" width="64" height="40" rx="12" fill="rgba(255,255,255,0.25)"/>
+    <circle cx="86" cy="142" r="6" fill="#ffc857"/>
+    <circle cx="114" cy="142" r="6" fill="#ff7a6b"/>
+    <!-- arm holding flashlight -->
+    <rect x="132" y="118" width="16" height="46" rx="8" fill="#2fa6ad"/>
+    <g transform="translate(150,150) rotate(35)">
+      <rect x="0" y="-9" width="34" height="18" rx="6" fill="#dfe7ea"/>
+      <rect x="30" y="-11" width="10" height="22" rx="3" fill="#b9c4c8"/>
+      <path class="byte-flash-beam" d="M 40 -11 L 92 -34 L 92 34 L 40 11 Z" fill="url(#beamGrad)"/>
+    </g>
+    <rect x="36" y="118" width="16" height="46" rx="8" fill="#2fa6ad"/>
+    <!-- head -->
+    <circle cx="100" cy="70" r="46" fill="url(#headGrad)"/>
+    <rect x="60" y="50" width="80" height="42" rx="20" fill="rgba(255,255,255,0.3)"/>
+    <!-- eyes normal -->
+    <g class="byte-eye-normal">
+      <circle cx="82" cy="70" r="11" fill="#1c3a3d"/><circle cx="118" cy="70" r="11" fill="#1c3a3d"/>
+      <circle cx="85" cy="66" r="3" fill="#fff"/><circle cx="121" cy="66" r="3" fill="#fff"/>
+    </g>
+    <!-- eyes happy (^ ^) -->
+    <g class="byte-eye-happy">
+      <path d="M72 72 Q82 58 92 72" stroke="#1c3a3d" stroke-width="6" fill="none" stroke-linecap="round"/>
+      <path d="M108 72 Q118 58 128 72" stroke="#1c3a3d" stroke-width="6" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- eyes worried -->
+    <g class="byte-eye-worried">
+      <circle cx="82" cy="72" r="9" fill="#1c3a3d"/><circle cx="118" cy="72" r="9" fill="#1c3a3d"/>
+      <path d="M74 58 L92 64" stroke="#1c3a3d" stroke-width="4" stroke-linecap="round"/>
+      <path d="M126 58 L108 64" stroke="#1c3a3d" stroke-width="4" stroke-linecap="round"/>
+    </g>
+    <!-- mouths -->
+    <path class="byte-mouth-normal" d="M86 90 Q100 98 114 90" stroke="#1c3a3d" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path class="byte-mouth-sad" d="M86 96 Q100 86 114 96" stroke="#1c3a3d" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path class="byte-mouth-worried" d="M92 92 Q100 88 108 92" stroke="#1c3a3d" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path class="byte-mouth-happy" d="M84 88 Q100 104 116 88" stroke="#1c3a3d" stroke-width="5" fill="none" stroke-linecap="round"/>
+    <path class="byte-mouth-excited" d="M82 86 Q100 108 118 86 Q100 98 82 86 Z" fill="#1c3a3d"/>
+    <g class="byte-spark">
+      <text x="150" y="30" font-size="22">✨</text>
+      <text x="30" y="40" font-size="16">✨</text>
+    </g>
+    <defs>
+      <linearGradient id="beamGrad" x1="0" y1="0" x2="1" y2="0">
+        <stop offset="0%" stop-color="#ffe9a8" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#ffe9a8" stop-opacity="0"/>
+      </linearGradient>
+    </defs>
+  </svg>`;
+}
+
+function byteRow(mood, lit, lines, opts){
+  // returns markup with byte + dialogue sequencer bound after insertion
+  const id = 'dlg' + Math.random().toString(36).slice(2,8);
+  return `
+  <div class="byte-row">
+    <div class="byte-wrap">${byteSVG(mood, {lit})}</div>
+    <div class="bubble" id="${id}" data-lines='${JSON.stringify(lines).replace(/'/g,"&#39;")}' data-i="0">
+      <span class="tail"></span>
+      <span class="bubble-text">${lines[0]}</span>
+      ${lines.length>1 ? `<button class="bubble-next" aria-label="Continue">▶</button>` : ''}
+    </div>
+  </div>`;
+}
+function wireBubble(root, onDone){
+  const b = root.querySelector('.bubble[data-lines]');
+  if(!b) return;
+  const lines = JSON.parse(b.dataset.lines.replace(/&#39;/g,"'"));
+  const btn = b.querySelector('.bubble-next');
+  const txt = b.querySelector('.bubble-text');
+  if(!btn){ if(onDone) onDone(); return; }
+  btn.addEventListener('click', ()=>{
+    S.click();
+    let i = parseInt(b.dataset.i,10) + 1;
+    b.dataset.i = i;
+    txt.textContent = lines[i];
+    if(i >= lines.length - 1){ btn.remove(); if(onDone) onDone(); }
+  });
+}
+
+/* ============================================================
+   CIRCUIT PROGRESS BAR
+   ============================================================ */
+const SCENE_META = [
+  {icon:'📖', label:'Story'},
+  {icon:'🎮', label:'Game'},
+  {icon:'💬', label:'Talk'},
+  {icon:'💡', label:'Theory'},
+  {icon:'🎨', label:'Draw'},
+  {icon:'🔧', label:'Build'},
+  {icon:'🏆', label:'Challenge'},
+  {icon:'🤔', label:'Reflect'},
+  {icon:'🎉', label:'Celebrate'},
+  {icon:'🏠', label:'Homework'}
+];
+function renderProgress(){
+  const wrap = document.getElementById('circuitProgress');
+  wrap.innerHTML = '';
+  SCENE_META.forEach((m,i)=>{
+    if(i>0){
+      const wire = document.createElement('div');
+      wire.className = 'wire' + (state.completed[i-1] ? ' charged' : '');
+      wrap.appendChild(wire);
+    }
+    const btn = document.createElement('button');
+    btn.className = 'node-btn';
+    btn.setAttribute('role','listitem');
+    btn.title = m.label;
+    btn.setAttribute('aria-label', m.label + (state.completed[i]?' (complete)':''));
+    let stateAttr = 'locked';
+    if(state.completed[i]) stateAttr = 'done';
+    else if(i === state.idx) stateAttr = 'current';
+    btn.dataset.state = stateAttr;
+    btn.textContent = state.completed[i] ? '✓' : m.icon;
+    if(i <= state.maxReached){
+      btn.addEventListener('click', ()=> goTo(i));
+    } else {
+      btn.style.opacity = '0.45';
+    }
+    wrap.appendChild(btn);
+  });
+}
+
+/* ============================================================
+   NAV
+   ============================================================ */
+function updateNav(){
+  document.getElementById('backBtn').disabled = state.idx === 0;
+  const nextBtn = document.getElementById('nextBtn');
+  nextBtn.disabled = state.idx === SCENE_META.length - 1;
+  nextBtn.textContent = state.idx === SCENE_META.length - 1 ? 'The End 🎉' : 'Next ▶';
+  document.getElementById('sceneCaption').textContent = `${SCENE_META[state.idx].icon} ${SCENE_META[state.idx].label} · Step ${state.idx+1} of ${SCENE_META.length}`;
+}
+function goTo(i){
+  if(i<0||i>=SCENE_META.length) return;
+  state.idx = i;
+  state.maxReached = Math.max(state.maxReached, i);
+  renderScene(i);
+  renderProgress();
+  updateNav();
+  document.getElementById('stage').scrollTop = 0;
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.getElementById('backBtn').addEventListener('click', ()=>{ S.click(); goTo(state.idx-1); });
+document.getElementById('nextBtn').addEventListener('click', ()=>{ S.click(); goTo(state.idx+1); });
+document.getElementById('soundBtn').addEventListener('click', function(){
+  soundOn = !soundOn;
+  this.setAttribute('aria-pressed', soundOn);
+  this.textContent = soundOn ? '🔊' : '🔇';
+  if(soundOn) S.click();
+});
+
+/* ============================================================
+   CRYSTAL BACKGROUND PARTICLES
+   ============================================================ */
+(function crystals(){
+  const holder = document.getElementById('crystals');
+  const n = 26;
+  for(let i=0;i<n;i++){
+    const d = document.createElement('div');
+    d.className = 'crystal';
+    const size = 2 + Math.random()*4;
+    d.style.width = size+'px'; d.style.height = size+'px';
+    d.style.left = Math.random()*100+'%';
+    d.style.top = Math.random()*100+'%';
+    d.style.animationDelay = (Math.random()*3.6)+'s';
+    d.style.background = Math.random() > 0.6 ? 'radial-gradient(circle, #ffe9a8, transparent)' : 'radial-gradient(circle, #bcd8ff, transparent)';
+    holder.appendChild(d);
+  }
+})();
+
+/* ============================================================
+   SCENE RENDERERS
+   ============================================================ */
+const stage = document.getElementById('stage');
+
+function sceneWrap(inner){
+  return `<div class="scene">${inner}</div>`;
+}
+
+/* ---------- 0: STORY ---------- */
+function renderStory(){
+  stage.innerHTML = sceneWrap(`
+    <div class="card">
+      <div class="eyebrow">📖 Story · The Cave of Lost Light</div>
+      <h1 class="scene-title">The Flashlight Goes Dark!</h1>
+      <p class="scene-sub">Robot Byte is stuck in a dark cave under Professor Nova's lab...</p>
+      ${byteRow('sad', false, [
+        "Whoa... it's SO dark down here in this cave!",
+        "My flashlight just switched OFF, and I don't know why!",
+        "Wait — the battery still has power. Something ELSE must be missing...",
+        "Secret Inventors, I need YOUR help to figure this out!"
+      ])}
+      <div class="mission-card" id="missionCard">
+        <div class="icon">🎯</div>
+        <div>
+          <strong style="font-family:var(--font-display);font-size:16px;">Your Mission:</strong>
+          <p style="margin-top:4px;font-weight:600;font-size:14.5px;">Discover how a <b>switch</b> controls electricity, and repair Byte's flashlight so the cave lights up again!</p>
+        </div>
+      </div>
+      <div class="btn-row">
+        <button class="btn" id="acceptBtn" style="display:none;">Accept the Mission 🔦</button>
+      </div>
+    </div>
+  `);
+  const root = stage;
+  wireBubble(root, ()=>{
+    const mc = document.getElementById('missionCard');
+    mc.classList.add('show');
+    const ab = document.getElementById('acceptBtn');
+    ab.style.display = 'inline-flex';
+    S.spark();
+  });
+  document.getElementById('acceptBtn')?.addEventListener('click', ()=>{
+    S.correct();
+    markComplete(0, 10);
+    goTo(1);
+  });
+  // in case button gets added after listener bound — use delegation fallback
+  root.addEventListener('click', (e)=>{
+    if(e.target && e.target.id==='acceptBtn'){}
+  });
+}
+
+/* ---------- 1: GAME — Electricity Stop or Go ---------- */
+function renderGame(){
+  stage.innerHTML = sceneWrap(`
+    <div class="card">
+      <div class="eyebrow">🎮 Game · Electricity: STOP or GO?</div>
+      <h1 class="scene-title">Be the Electricity!</h1>
+      <p class="scene-sub">Flip the big switch. Watch what happens to the sparks on the loop.</p>
+      <div class="loop-wrap">
+        <svg class="loop-svg" viewBox="0 0 300 300" id="loopSvg">
+          <circle cx="150" cy="150" r="110" fill="none" stroke="rgba(255,255,255,0.15)" stroke-width="10"/>
+          <path id="loopArc" d="" fill="none" stroke="#4fd9d0" stroke-width="10" stroke-linecap="round"/>
+          <g id="gapMark" style="display:none;">
+            <rect x="140" y="30" width="20" height="20" fill="#130a29"/>
+            <text x="150" y="48" font-size="18" text-anchor="middle">⚡</text>
+          </g>
+          <g id="electrons"></g>
+          <circle cx="150" cy="150" r="46" fill="rgba(255,255,255,0.06)"/>
+          <text id="loopFace" x="150" y="160" font-size="40" text-anchor="middle">🔌</text>
+        </svg>
+        <div class="big-switch">
+          <span class="toggle-label" id="switchWord">OPEN</span>
+          <button class="toggle" id="loopToggle" role="switch" aria-checked="false" aria-label="Toggle circuit switch"><span class="knob"></span></button>
+          <span class="toggle-label">CLOSED</span>
+        </div>
+        <p style="font-weight:700;font-size:14px;text-align:center;" id="loopHint">Tap the switch to CLOSE the circuit and set the electricity free!</p>
+      </div>
+
+      <div id="loopQuiz" style="display:none;">
+        <div class="bubble" style="margin-top:10px;"><span class="tail"></span><span>So... when could the electricity actually travel all the way around?</span></div>
+        <div class="mcq-row">
+          <button class="mcq-opt" data-correct="0">When the path had a gap (OPEN)</button>
+          <button class="mcq-opt" data-correct="1">When the path was complete (CLOSED)</button>
+        </div>
+      </div>
+
+      <details style="margin-top:16px;">
+        <summary class="chip" style="cursor:pointer;">👩‍🏫 Teacher tip: play this with your whole class!</summary>
+        <p style="margin-top:10px;font-size:13.5px;font-weight:600;color:rgba(255,248,234,0.85);">
+          Make a big loop on the floor with rope or tape. Some kids are "electricity" and walk the loop; one kid is the "switch." When the switch is CLOSED, electricity keeps moving. When OPEN, there's a gap and everyone stops. Switch it up and ask why!
+        </p>
+      </details>
+    </div>
+  `);
+
+  let closed = false, toggles = 0;
+  const svgNS = 'http://www.w3.org/2000/svg';
+  const eGroup = document.getElementById('electrons');
+  const positions = [];
+  for(let i=0;i<6;i++){
+    const a = (i/6) * Math.PI*2;
+    const c = document.createElementNS(svgNS,'circle');
+    c.setAttribute('cx', 150 + 110*Math.cos(a));
+    c.setAttribute('cy', 150 + 110*Math.sin(a));
+    c.setAttribute('r', 7);
+    c.setAttribute('fill', '#ffe9a8');
+    c.setAttribute('opacity', '0');
+    eGroup.appendChild(c);
+    positions.push({angle:a, el:c});
+  }
+  let rot = 0, raf;
+  function animateLoop(){
+    if(closed){
+      rot += 0.02;
+      positions.forEach((p,i)=>{
+        const a = p.angle + rot;
+        p.el.setAttribute('cx', 150 + 110*Math.cos(a));
+        p.el.setAttribute('cy', 150 + 110*Math.sin(a));
+        p.el.setAttribute('opacity','1');
+      });
+    }
+    raf = requestAnimationFrame(animateLoop);
+  }
+  animateLoop();
+
+  const toggle = document.getElementById('loopToggle');
+  const word = document.getElementById('switchWord');
+  const gapMark = document.getElementById('gapMark');
+  const hint = document.getElementById('loopHint');
+  const face = document.getElementById('loopFace');
+  function setState(next){
+    closed = next; toggles++;
+    toggle.setAttribute('aria-checked', closed);
+    toggle.setAttribute('aria-pressed', closed);
+    gapMark.style.display = closed ? 'none' : 'block';
+    face.textContent = closed ? '💡' : '🌑';
+    if(closed){ S.toggleOn(); hint.textContent = "Yes! The path is complete — electricity flows all the way around!"; }
+    else { S.toggleOff(); positions.forEach(p=>p.el.setAttribute('opacity','0')); hint.textContent = "The path has a gap now — electricity has nowhere to go. It STOPS."; }
+    if(toggles >= 2){ document.getElementById('loopQuiz').style.display = 'block'; }
+  }
+  toggle.addEventListener('click', ()=> setState(!closed));
+
+  document.querySelectorAll('#loopQuiz .mcq-opt').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      document.querySelectorAll('#loopQuiz .mcq-opt').forEach(b=>b.disabled=true);
+      if(this.dataset.correct==='1'){ this.classList.add('correct'); S.correct(); markComplete(1,15); }
+      else { this.classList.add('wrong'); S.wrong(); document.querySelector('#loopQuiz .mcq-opt[data-correct="1"]').classList.add('correct'); }
+    });
+  });
+}
+
+/* ---------- 2: DISCUSSION FLIP CARDS ---------- */
+const QA = [
+  ["What happened when the path had a gap?","The electricity couldn't keep moving — it had to STOP!"],
+  ["What happened when the path was complete?","Electricity could travel all the way around!"],
+  ["What could Byte use to control the light?","A switch! It can turn the flashlight on and off."],
+  ["What does a switch actually do?","It opens or closes the electrical path."],
+  ["When the switch is ON, is the circuit open or closed?","CLOSED — that's why electricity can flow!"],
+  ["When the switch is OFF, is the circuit open or closed?","OPEN — there's a gap, so electricity stops."],
+  ["Why would we want to STOP electricity sometimes?","So a device isn't always running — we choose when!"],
+  ["What happens when you press a flashlight button?","It changes the circuit so light can turn on or off."]
+];
+function renderDiscussion(){
+  stage.innerHTML = sceneWrap(`
+    <div class="card">
+      <div class="eyebrow">💬 Discussion · Think Like an Inventor</div>
+      <h1 class="scene-title">Tap a Card to Reveal Byte's Answer</h1>
+      <p class="scene-sub"><span id="flipCount">0</span> / ${QA.length} cards explored</p>
+      <div class="flip-grid" id="flipGrid"></div>
+    </div>
+  `);
+  const grid = document.getElementById('flipGrid');
+  let flippedCount = 0;
+  const seen = new Set();
+  QA.forEach((pair,i)=>{
+    const card = document.createElement('div');
+    card.className = 'flip-card';
+    card.tabIndex = 0;
+    card.setAttribute('role','button');
+    card.setAttribute('aria-label', 'Discussion question ' + (i+1));
+    card.innerHTML = `
+      <div class="flip-inner">
+        <div class="flip-face flip-front"><span class="qnum">Q${i+1}</span>${pair[0]}</div>
+        <div class="flip-face flip-back">${pair[1]}</div>
+      </div>`;
+    function flip(){
+      card.classList.toggle('flipped');
+      S.flip();
+      if(!seen.has(i)){ seen.add(i); flippedCount++; document.getElementById('flipCount').textContent = flippedCount; addXP(2);
+        if(flippedCount === QA.length){ markComplete(2, 10); }
+      }
+    }
+    card.addEventListener('click', flip);
+    card.addEventListener('keydown', e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); flip(); }});
+    grid.appendChild(card);
+  });
+}
+
+/* ---------- 3: THEORY ---------- */
+function renderTheory(){
+  stage.innerHTML = sceneWrap(`
+    <div class="card">
+      <div class="eyebrow">💡 Theory · 2-Minute Big Idea</div>
+      <h1 class="scene-title">Open Circuit vs. Closed Circuit</h1>
+      <p class="scene-sub">Tap the switch on the diagram and watch the LED!</p>
+      <div class="theory-wrap">
+        <svg class="circuit-svg" viewBox="0 0 400 220" id="theorySvg">
+          <rect x="20" y="90" width="60" height="34" rx="6" fill="#ffe9a8" stroke="#c9922b" stroke-width="3"/>
+          <text x="50" y="112" font-size="12" text-anchor="middle" font-weight="700" fill="#5b3c00">BATTERY</text>
+          <line x1="50" y1="90" x2="50" y2="30" stroke="#cfd8ff" stroke-width="6"/>
+          <line x1="50" y1="30" x2="180" y2="30" stroke="#cfd8ff" stroke-width="6"/>
+          <line x1="220" y1="30" x2="330" y2="30" stroke="#cfd8ff" stroke-width="6"/>
+          <line x1="330" y1="30" x2="330" y2="90" stroke="#cfd8ff" stroke-width="6"/>
+          <line x1="50" y1="124" x2="50" y2="180" stroke="#cfd8ff" stroke-width="6"/>
+          <line x1="50" y1="180" x2="330" y2="180" stroke="#cfd8ff" stroke-width="6"/>
+          <line x1="330" y1="180" x2="330" y2="124" stroke="#cfd8ff" stroke-width="6"/>
+          <!-- switch -->
+          <g id="theorySwitchGroup" style="cursor:pointer;">
+            <circle cx="180" cy="30" r="6" fill="#fff"/>
+            <circle cx="220" cy="30" r="6" fill="#fff"/>
+            <line id="switchLever" x1="180" y1="30" x2="220" y2="30" stroke="#4fd9d0" stroke-width="7" stroke-linecap="round"/>
+            <text x="200" y="16" font-size="11" text-anchor="middle" font-weight="700" fill="#fff">SWITCH</text>
+          </g>
+          <!-- LED -->
+          <circle id="theoryLed" cx="330" cy="107" r="24" fill="#4a3a72" stroke="#8a7ac0" stroke-width="3"/>
+          <text x="330" y="114" font-size="20" text-anchor="middle">💡</text>
+          <text x="330" y="145" font-size="12" text-anchor="middle" font-weight="700" fill="#fff">LED</text>
+          <text id="theoryStatus" x="200" y="205" font-size="15" text-anchor="middle" font-weight="800" fill="#ff9f1c">Tap the switch above ☝️</text>
+        </svg>
+        <div class="concept-list">
+          <div class="concept-chip"><span class="star">★</span> A switch is a tiny gate in the circuit.</div>
+          <div class="concept-chip"><span class="star">★</span> CLOSED = complete path = LED glows.</div>
+          <div class="concept-chip"><span class="star">★</span> OPEN = broken path = no electricity flows.</div>
+          <div class="concept-chip"><span class="star">★</span> Switches let us control power without unplugging anything!</div>
+        </div>
+      </div>
+    </div>
+  `);
+  let seenOpen=false, seenClosed=false, closed=false;
+  const lever = document.getElementById('switchLever');
+  const led = document.getElementById('theoryLed');
+  const status = document.getElementById('theoryStatus');
+  function apply(){
+    if(closed){
+      lever.setAttribute('x2','220'); lever.setAttribute('y2','30'); lever.setAttribute('stroke','#4fd9d0');
+      led.setAttribute('fill','#ffc857'); led.style.filter='drop-shadow(0 0 10px #ffc857)';
+      status.textContent = 'CLOSED circuit — the LED glows! 💡'; status.setAttribute('fill','#6bcb77');
+      seenClosed = true; S.toggleOn();
+    } else {
+      lever.setAttribute('x2','205'); lever.setAttribute('y2','12'); lever.setAttribute('stroke','#ff7a6b');
+      led.setAttribute('fill','#4a3a72'); led.style.filter='none';
+      status.textContent = 'OPEN circuit — the path is broken. No light. 🌑'; status.setAttribute('fill','#ff9f1c');
+      seenOpen = true; S.toggleOff();
+    }
+    if(seenOpen && seenClosed) markComplete(3, 10);
+  }
+  document.getElementById('theorySwitchGroup').addEventListener('click', ()=>{ closed=!closed; apply(); });
+}
+
+/* ---------- 4: DRAWING ---------- */
+function renderDrawing(){
+  stage.innerHTML = sceneWrap(`
+    <div class="card">
+      <div class="eyebrow">🎨 Drawing · Design Byte's Flashlight</div>
+      <h1 class="scene-title">Draw Both Circuits!</h1>
+      <p class="scene-sub">Draw the battery, switch, LED, resistor and wires — once with the switch OPEN, once CLOSED.</p>
+      <div class="tabs">
+        <button class="tab-btn active" data-tab="closed">🔒 Switch CLOSED</button>
+        <button class="tab-btn" data-tab="open">🔓 Switch OPEN</button>
+      </div>
+      <div class="canvas-wrap"><canvas class="draw-canvas" id="drawCanvasClosed"></canvas></div>
+      <div class="canvas-wrap" style="display:none;"><canvas class="draw-canvas" id="drawCanvasOpen"></canvas></div>
+      <div class="palette" id="palette">
+        ${['#241443','#ff6b6b','#ffc857','#4fd9d0','#6bcb77','#ffffff'].map((c,i)=>`<button class="swatch ${i===0?'active':''}" data-color="${c}" style="background:${c}" aria-label="color"></button>`).join('')}
+        <button class="tool-btn" id="eraseBtn">🧽 Eraser</button>
+        <button class="tool-btn" id="clearBtn">🗑 Clear</button>
+      </div>
+      <div class="checklist">
+        ${['🔋 Battery','🔘 Switch','💡 LED','🌀 Resistor','➖ Wires'].map(l=>`<button class="check-chip" data-item="${l}">${l}</button>`).join('')}
+      </div>
+      <p style="margin-top:10px;font-size:12.5px;font-weight:700;color:rgba(255,248,234,0.7);">Tap each part above once you've drawn it!</p>
+      <div class="btn-row"><button class="btn teal" id="doneDrawing">I'm Done Drawing! ✅</button></div>
+    </div>
+  `);
+
+  function setupCanvas(id){
+    const canvas = document.getElementById(id);
+    const dpr = window.devicePixelRatio || 1;
+    function resize(){
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width*dpr; canvas.height = 280*dpr;
+      const c = canvas.getContext('2d'); c.scale(dpr,dpr);
+      c.lineCap='round'; c.lineJoin='round';
+    }
+    resize();
+    let drawing=false, last=null, color='#241443', size=5, dirty=false;
+    const c = canvas.getContext('2d');
+    function pos(e){
+      const rect = canvas.getBoundingClientRect();
+      const t = e.touches ? e.touches[0] : e;
+      return {x:t.clientX-rect.left, y:t.clientY-rect.top};
+    }
+    function start(e){ drawing=true; last=pos(e); e.preventDefault(); }
+    function move(e){
+      if(!drawing) return;
+      const p = pos(e);
+      c.strokeStyle=color; c.lineWidth=size;
+      c.beginPath(); c.moveTo(last.x,last.y); c.lineTo(p.x,p.y); c.stroke();
+      last=p; dirty=true; e.preventDefault();
+    }
+    function end(){ drawing=false; }
+    ['mousedown','touchstart'].forEach(ev=>canvas.addEventListener(ev,start,{passive:false}));
+    ['mousemove','touchmove'].forEach(ev=>canvas.addEventListener(ev,move,{passive:false}));
+    ['mouseup','mouseleave','touchend'].forEach(ev=>canvas.addEventListener(ev,end));
+    return { canvas, setColor:(col)=>{color=col;}, setEraser:(on)=>{ color = on ? '#fff8ea' : color; size = on?18:5; }, clear:()=>{ c.clearRect(0,0,canvas.width,canvas.height); dirty=false; }, isDirty:()=>dirty };
+  }
+  const closedCv = setupCanvas('drawCanvasClosed');
+  const openCv = setupCanvas('drawCanvasOpen');
+  let active = closedCv, activeTab='closed';
+
+  document.querySelectorAll('.tab-btn').forEach(btn=>{
+    btn.addEventListener('click', function(){
+      S.click();
+      document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+      this.classList.add('active');
+      activeTab = this.dataset.tab;
+      document.querySelectorAll('.canvas-wrap')[0].style.display = activeTab==='closed' ? 'block':'none';
+      document.querySelectorAll('.canvas-wrap')[1].style.display = activeTab==='open' ? 'block':'none';
+      active = activeTab==='closed' ? closedCv : openCv;
+    });
+  });
+  document.querySelectorAll('.swatch').forEach(sw=>{
+    sw.addEventListener('click', function(){
+      document.querySelectorAll('.swatch').forEach(s=>s.classList.remove('active'));
+      this.classList.add('active');
+      closedCv.setColor(this.dataset.color); openCv.setColor(this.dataset.color);
+      S.click();
+    });
+  });
+  document.getElementById('eraseBtn').addEventListener('click', ()=>{ closedCv.setEraser(true); openCv.setEraser(true); S.click(); });
+  document.getElementById('clearBtn').addEventListener('click', ()=>{ active.clear(); S.click(); });
+  document.querySelectorAll('.check-chip').forEach(chip=>{
+    chip.addEventListener('click', function(){ this.classList.toggle('on'); S.click(); });
+  });
+  document.getElementById('doneDrawing').addEventListener('click', ()=>{
+    S.correct();
+    markComplete(4, 15);
+  });
+}
+
+/* ---------- 5: HARDWARE ---------- */
+const HW_STEPS = [
+  "Look at the battery, LED, resistor, wires, breadboard and switch on your tray.",
+  "Which part gives energy? Which part makes light? Point to each!",
+  "Click the switch a few times before it's connected — feel it move.",
+  "Predict: does the switch make a NEW path, or break a path?",
+  "Build the basic LED circuit first — battery, resistor, LED, wires.",
+  "Check the LED lights up with the basic circuit.",
+  "Now add the switch into the circuit at the connection point.",
+  "Open the switch — watch the LED turn OFF. Then close it again!"
+];
+function renderHardware(){
+  stage.innerHTML = sceneWrap(`
+    <div class="card">
+      <div class="eyebrow">🔧 Hardware · Real Circuit Build</div>
+      <h1 class="scene-title">Build Byte's Flashlight for Real!</h1>
+      <p class="scene-sub">Grab your materials and follow along with a grown-up or teacher.</p>
+      <div class="materials-tray">
+        ${[['🔋','Battery'],['💡','LED'],['🌀','Resistor'],['🧵','Wires'],['🟩','Breadboard'],['🔘','Switch']].map(m=>`<div class="material-pill"><span class="ic">${m[0]}</span><span class="lbl">${m[1]}</span></div>`).join('')}
+      </div>
+      <div class="step-list" id="hwSteps"></div>
+      <div class="safety-note">⚠️ Always ask a grown-up before connecting a battery, and disconnect it when you're done!</div>
+    </div>
+  `);
+  const list = document.getElementById('hwSteps');
+  let done = 0;
+  HW_STEPS.forEach((s,i)=>{
+    const item = document.createElement('div');
+    item.className = 'step-item';
+    item.innerHTML = `<div class="step-check">${i+1}</div><div class="step-text">${s}</div>`;
+    item.addEventListener('click', ()=>{
+      const wasOn = item.classList.contains('done');
+      item.classList.toggle('done');
+      item.querySelector('.step-check').textContent = item.classList.contains('done') ? '✓' : (i+1);
+      if(!wasOn){ done++; S.click(); } else { done--; }
+      if(done === HW_STEPS.length){ S.correct(); markComplete(5, 20); }
+    });
+    list.appendChild(item);
+  });
+}
+
+/* ---------- 6: CHALLENGE ---------- */
+function renderChallenge(){
+  stage.innerHTML = sceneWrap(`
+    <div class="card">
+      <div class="eyebrow">🏆 Challenge · The Cave Rescue</div>
+      <h1 class="scene-title">Flip the Light 3 Times!</h1>
+      <p class="scene-sub">Turn Byte's flashlight ON and OFF three times in a row using the switch.</p>
+      <div class="challenge-flash-wrap">
+        <svg class="flash-svg" viewBox="0 0 160 160" id="flashSvg">
+          <circle cx="80" cy="80" r="70" fill="rgba(255,255,255,0.06)"/>
+          <rect x="55" y="30" width="50" height="90" rx="14" fill="#dfe7ea"/>
+          <rect x="65" y="20" width="30" height="18" rx="6" fill="#b9c4c8"/>
+          <circle id="bulbGlow" cx="80" cy="30" r="26" fill="#ffe9a8" opacity="0"/>
+          <circle cx="80" cy="30" r="12" fill="#ffe066"/>
+          <rect x="65" y="90" width="30" height="16" rx="8" fill="#4fd9d0"/>
+        </svg>
+        <button class="btn" id="flashToggle">Flip the Switch 🔘</button>
+        <div class="count-ring" id="countRing"></div>
+        <p style="font-weight:700;font-size:13.5px;" id="challengeHint">Toggles: <span id="toggleCount">0</span> / 6 (3 ON + 3 OFF)</p>
+      </div>
+
+      <div class="predict-box" id="predictBox" style="display:none;">
+        <h3 style="font-size:18px;">🔮 Predict It!</h3>
+        <p style="font-weight:700;font-size:14px;margin-top:6px;" id="predictQ">If the switch is OPEN, will the LED be ON or OFF?</p>
+        <div class="predict-buttons">
+          <button class="btn secondary" data-guess="on">☀️ ON</button>
+          <button class="btn secondary" data-guess="off">🌑 OFF</button>
+        </div>
+        <p style="margin-top:10px;font-weight:700;" id="predictResult"></p>
+      </div>
+
+      <details style="margin-top:16px;">
+        <summary class="chip gold" style="cursor:pointer;">⭐ Bonus: Design your own flashlight button!</summary>
+        <p style="margin-top:10px;font-size:13.5px;font-weight:600;">Where would YOU put the switch so it's easy to press? Grab a pencil and sketch it on paper, or describe it to a friend!</p>
+      </details>
+    </div>
+  `);
+  let lit = false, toggles = 0;
+  const ring = document.getElementById('countRing');
+  for(let i=0;i<6;i++){ const d=document.createElement('div'); d.className='count-dot'; ring.appendChild(d); }
+  const dots = ring.querySelectorAll('.count-dot');
+  const glow = document.getElementById('bulbGlow');
+  const btn = document.getElementById('flashToggle');
+  const tCount = document.getElementById('toggleCount');
+  btn.addEventListener('click', ()=>{
+    lit = !lit; toggles++;
+    glow.setAttribute('opacity', lit ? '0.9':'0');
+    if(lit) S.toggleOn(); else S.toggleOff();
+    tCount.textContent = Math.min(toggles,6);
+    if(dots[toggles-1]) dots[toggles-1].classList.add('on');
+    if(toggles >= 6){
+      btn.disabled = true;
+      document.getElementById('challengeHint').textContent = 'Great job! You mastered the switch! 🎉';
+      document.getElementById('predictBox').style.display='block';
+      addXP(10);
+    }
+  });
+  let predicted = 0;
+  document.querySelectorAll('#predictBox [data-guess]').forEach(b=>{
+    b.addEventListener('click', function(){
+      document.querySelectorAll('#predictBox [data-guess]').forEach(x=>x.disabled=true);
+      const q = document.getElementById('predictQ').textContent;
+      const isOpenQ = q.includes('OPEN');
+      const correctGuess = isOpenQ ? 'off' : 'on';
+      const res = document.getElementById('predictResult');
+      if(this.dataset.guess === correctGuess){ res.textContent='Correct! 🎉'; res.style.color='#6bcb77'; S.correct(); }
+      else { res.textContent = 'Not quite — a ' + (isOpenQ?'broken':'complete') + ' path means the LED is ' + correctGuess.toUpperCase() + '.'; res.style.color='#ff9f1c'; S.wrong(); }
+      predicted++;
+      if(predicted===1){
+        setTimeout(()=>{
+          document.getElementById('predictQ').textContent = 'Now if the switch is CLOSED, will the LED be ON or OFF?';
+          document.getElementById('predictResult').textContent='';
+          document.querySelectorAll('#predictBox [data-guess]').forEach(x=>x.disabled=false);
+        }, 1400);
+      } else {
+        markComplete(6, 20);
+      }
+    });
+  });
+}
+
+/* ---------- 7: REFLECTION ---------- */
+const REFLECTIONS = [
+  {q:"What was wrong with Byte's flashlight?", type:'open'},
+  {q:"When the switch is closed, is the circuit open or broken?", type:'quiz', options:['Closed & complete','Open & broken'], correct:0},
+  {q:"How did you make Byte's light turn ON?", type:'open'},
+  {q:"How did you make it turn OFF?", type:'open'},
+  {q:"When the switch is open, why can't electricity finish the circuit?", type:'quiz', options:['There is a gap in the path','The battery is empty'], correct:0},
+  {q:"Where do you see switches in YOUR home?", type:'open'},
+  {q:"What would happen if a flashlight had no switch at all?", type:'open'}
+];
+function renderReflection(){
+  stage.innerHTML = sceneWrap(`
+    <div class="card">
+      <div class="eyebrow">🤔 Reflection · Byte Wants to Know</div>
+      <h1 class="scene-title">Let's Think Back Together</h1>
+      <div class="reflect-card" id="reflectCard"></div>
+      <div class="reflect-dots" id="reflectDots"></div>
+      <div class="btn-row">
+        <button class="btn secondary" id="rPrev">◀ Prev</button>
+        <button class="btn teal" id="rNext">Next ▶</button>
+      </div>
+    </div>
+  `);
+  let ri = 0;
+  const seen = new Set();
+  const dotsWrap = document.getElementById('reflectDots');
+  REFLECTIONS.forEach(()=>{ const d=document.createElement('div'); d.className='rdot'; dotsWrap.appendChild(d); });
+  const dots = dotsWrap.querySelectorAll('.rdot');
+
+  function draw(){
+    const item = REFLECTIONS[ri];
+    const card = document.getElementById('reflectCard');
+    seen.add(ri);
+    dots.forEach((d,i)=>{ d.classList.toggle('seen', seen.has(i)); d.classList.toggle('current', i===ri); });
+    if(item.type==='open'){
+      card.innerHTML = `${byteRow('thinking', false, [item.q])}
+        <textarea class="reflect-input" placeholder="Type your idea, or talk it over out loud!"></textarea>`;
+    } else {
+      card.innerHTML = `${byteRow('thinking', false, [item.q])}
+        <div class="mcq-row">
+          ${item.options.map((o,i)=>`<button class="mcq-opt" data-i="${i}">${o}</button>`).join('')}
+        </div>`;
+      card.querySelectorAll('.mcq-opt').forEach(b=>{
+        b.addEventListener('click', function(){
+          card.querySelectorAll('.mcq-opt').forEach(x=>x.disabled=true);
+          if(parseInt(this.dataset.i,10)===item.correct){ this.classList.add('correct'); S.correct(); }
+          else { this.classList.add('wrong'); S.wrong(); card.querySelector(`.mcq-opt[data-i="${item.correct}"]`).classList.add('correct'); }
+        });
+      });
+    }
+    document.getElementById('rPrev').disabled = ri===0;
+    document.getElementById('rNext').textContent = ri===REFLECTIONS.length-1 ? "Finish Reflecting ✅" : "Next ▶";
+    if(seen.size === REFLECTIONS.length){ markComplete(7, 20); }
+  }
+  document.getElementById('rPrev').addEventListener('click', ()=>{ if(ri>0){ ri--; S.click(); draw(); } });
+  document.getElementById('rNext').addEventListener('click', ()=>{
+    S.click();
+    if(ri < REFLECTIONS.length-1){ ri++; draw(); }
+    else { markComplete(7,20); goTo(8); }
+  });
+  draw();
+}
+
+/* ---------- 8: CELEBRATION ---------- */
+function renderCelebration(){
+  document.getElementById('app').classList.add('lit');
+  stage.innerHTML = sceneWrap(`
+    <div class="card celebrate-wrap">
+      <div class="eyebrow" style="justify-content:center;">🎉 Celebration</div>
+      <h1 class="scene-title">Mission Complete!</h1>
+      <p class="scene-sub">You brought light back to the cave, Secret Inventor!</p>
+      <div class="byte-wrap" style="margin:0 auto;width:170px;">${byteSVG('excited', {lit:true})}</div>
+      <div class="badge-pop" aria-hidden="true">🏅</div>
+      <h2 style="font-size:20px;margin-top:4px;">Switch Master</h2>
+      <p style="font-weight:700;color:var(--glow-gold);margin-top:4px;">+50 XP earned!</p>
+      <div class="cert">
+        <div style="font-size:34px;">🔦✨</div>
+        <h3>Certificate of Achievement</h3>
+        <div class="line"></div>
+        <p style="font-weight:700;">This certifies that a <b>Secret Inventor</b> repaired Robot Byte's flashlight by mastering <b>switches, open circuits &amp; closed circuits</b>.</p>
+        <p style="margin-top:10px;font-size:13px;color:var(--ink-soft);font-weight:700;" id="certDate"></p>
+      </div>
+      <div class="btn-row" style="justify-content:center;">
+        <button class="btn secondary" id="replayBtn">↺ Replay Mission</button>
+        <button class="btn" id="toHomeworkBtn">See Your Homework ▶</button>
+      </div>
+    </div>
+  `);
+  document.getElementById('certDate').textContent = 'Completed on ' + new Date().toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'});
+  markComplete(8, 50);
+  S.celebrate();
+  fireConfetti();
+  document.getElementById('replayBtn').addEventListener('click', ()=>{ document.getElementById('app').classList.remove('lit'); state.completed.fill(false); state.xp=0; state.maxReached=0; document.getElementById('xpVal').textContent='0'; goTo(0); });
+  document.getElementById('toHomeworkBtn').addEventListener('click', ()=> goTo(9));
+}
+
+function fireConfetti(){
+  if(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const canvas = document.getElementById('confettiCanvas');
+  const c = canvas.getContext('2d');
+  function resize(){ canvas.width = innerWidth; canvas.height = innerHeight; }
+  resize(); window.addEventListener('resize', resize);
+  const colors = ['#ffc857','#ff9f1c','#4fd9d0','#ff7a6b','#6bcb77','#fff8ea'];
+  const pieces = [];
+  for(let i=0;i<140;i++){
+    pieces.push({
+      x: Math.random()*canvas.width, y: -20 - Math.random()*canvas.height*0.5,
+      w: 6+Math.random()*6, h: 8+Math.random()*8,
+      c: colors[Math.floor(Math.random()*colors.length)],
+      speed: 2+Math.random()*3, rot: Math.random()*360, rotSpeed:(Math.random()-0.5)*10, drift: (Math.random()-0.5)*2
+    });
+  }
+  let frame=0;
+  function loop(){
+    frame++;
+    c.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      p.y += p.speed; p.x += p.drift; p.rot += p.rotSpeed;
+      c.save(); c.translate(p.x,p.y); c.rotate(p.rot*Math.PI/180);
+      c.fillStyle = p.c; c.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      c.restore();
+    });
+    if(frame < 260) requestAnimationFrame(loop);
+    else c.clearRect(0,0,canvas.width,canvas.height);
+  }
+  loop();
+}
+
+/* ---------- 9: HOMEWORK ---------- */
+function renderHomework(){
+  stage.innerHTML = sceneWrap(`
+    <div class="card">
+      <div class="eyebrow">🏠 Homework · Switch Hunt</div>
+      <h1 class="scene-title">Find 5 Switches at Home!</h1>
+      ${byteRow('happy', true, ["Team up with a grown-up and go on a Switch Hunt around your home! Find 5 switches and see what each one controls."])}
+      <div class="homework-card">
+        <div class="hw-list" id="hwList"></div>
+        <p style="margin-top:14px;font-size:13.5px;font-weight:700;color:rgba(255,248,234,0.85);">🖍️ Bonus: for ONE switch, draw what the circuit looks like when it's ON and when it's OFF.</p>
+        <p style="margin-top:6px;font-size:13.5px;font-weight:700;color:rgba(255,248,234,0.85);">Bring your discoveries to the next mission — which switch was the MOST useful?</p>
+        <div class="btn-row">
+          <button class="btn secondary" id="printBtn">🖨 Print This Page</button>
+        </div>
+      </div>
+      <div class="btn-row" style="margin-top:22px;justify-content:center;">
+        <div class="chip done" style="font-size:15px;padding:12px 20px;">🏅 Switch Master &nbsp;•&nbsp; ⚡ <span id="finalXp">0</span> XP Total</div>
+      </div>
+    </div>
+  `);
+  const list = document.getElementById('hwList');
+  for(let i=1;i<=5;i++){
+    const row = document.createElement('div');
+    row.className = 'hw-item';
+    row.innerHTML = `<input type="checkbox" aria-label="Switch ${i} found"><input type="text" placeholder="Switch ${i}: what does it control?">`;
+    list.appendChild(row);
+  }
+  document.getElementById('printBtn').addEventListener('click', ()=> window.print());
+  document.getElementById('finalXp').textContent = state.xp;
+  markComplete(9, 0);
+}
+
+/* ============================================================
+   SCENE ROUTER
+   ============================================================ */
+const RENDERERS = [renderStory, renderGame, renderDiscussion, renderTheory, renderDrawing, renderHardware, renderChallenge, renderReflection, renderCelebration, renderHomework];
+function renderScene(i){ RENDERERS[i](); }
+
+/* ============================================================
+   INIT
+   ============================================================ */
+renderProgress();
+updateNav();
+renderScene(0);
+
+})();
+</script>
+</body>
+</html>

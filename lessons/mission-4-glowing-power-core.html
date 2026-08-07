@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1">
+<title>Mission 4: The Glowing Power Core | BuildBots AI</title>
+<meta name="description" content="Help Robot Byte build a glowing power core — an interactive circuits lesson for young inventors.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+/* ============================= TOKENS ============================= */
+:root{
+  --bg-0:#0c0d2b;
+  --bg-1:#141646;
+  --bg-2:#1c1f5c;
+  --panel:rgba(255,255,255,0.065);
+  --panel-strong:rgba(255,255,255,0.11);
+  --panel-solid:#1b1e52;
+  --line:rgba(255,255,255,0.14);
+  --cyan:#4fe3ff;
+  --cyan-deep:#1fb8e8;
+  --gold:#ffc94a;
+  --gold-deep:#ff9d2e;
+  --coral:#ff7a7a;
+  --violet:#9b8bff;
+  --green:#5be89a;
+  --ink:#f4f5ff;
+  --ink-dim:#aeb1de;
+  --ink-dimmer:#7d80ab;
+  --r-xl:30px;
+  --r-lg:22px;
+  --r-md:16px;
+  --r-sm:10px;
+  --font-d:'Baloo 2', ui-rounded, 'Segoe UI', system-ui, sans-serif;
+  --font-b:'Nunito', system-ui, -apple-system, sans-serif;
+  --shadow-soft: 0 20px 50px -20px rgba(0,0,0,0.55);
+}
+
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family:var(--font-b);
+  color:var(--ink);
+  background:
+    radial-gradient(1200px 700px at 15% -10%, #2a2d78 0%, transparent 60%),
+    radial-gradient(1000px 800px at 110% 10%, #37205f 0%, transparent 55%),
+    linear-gradient(180deg,var(--bg-0),var(--bg-1) 45%, var(--bg-0));
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,h4{font-family:var(--font-d); margin:0; line-height:1.15; letter-spacing:.2px;}
+p{margin:0;}
+button{font-family:inherit;}
+:focus-visible{outline:3px solid var(--cyan); outline-offset:3px; border-radius:8px;}
+.sr-only{position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;}
+
+/* circuit blueprint backdrop */
+.blueprint-bg{
+  position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.35;
+  background-image:
+    linear-gradient(rgba(79,227,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79,227,255,0.06) 1px, transparent 1px);
+  background-size:42px 42px;
+  mask-image: radial-gradient(1200px 800px at 50% 20%, black, transparent 80%);
+}
+.bg-orb{position:fixed; border-radius:50%; filter:blur(60px); z-index:0; pointer-events:none;}
+.orb-a{width:420px; height:420px; background:radial-gradient(circle, #4f5bff55, transparent 70%); top:-120px; left:-100px; animation:drift1 22s ease-in-out infinite;}
+.orb-b{width:360px; height:360px; background:radial-gradient(circle, #ffc94a3d, transparent 70%); bottom:-100px; right:-80px; animation:drift2 26s ease-in-out infinite;}
+@keyframes drift1{0%,100%{transform:translate(0,0);}50%{transform:translate(40px,50px);}}
+@keyframes drift2{0%,100%{transform:translate(0,0);}50%{transform:translate(-30px,-40px);}}
+
+/* ============================= LAYOUT ============================= */
+.app-shell{position:relative; z-index:1; min-height:100vh; display:flex; flex-direction:column;}
+
+/* ---- Top bar / progress ---- */
+.topbar{
+  position:sticky; top:0; z-index:40;
+  display:flex; align-items:center; gap:14px;
+  padding:12px 16px;
+  background:rgba(12,13,43,0.65);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line);
+}
+.brand{display:flex; align-items:center; gap:8px; font-family:var(--font-d); font-weight:700; font-size:15px; color:var(--ink); white-space:nowrap;}
+.brand .dot{width:9px; height:9px; border-radius:50%; background:var(--gold); box-shadow:0 0 10px var(--gold);}
+.progress-track{
+  flex:1; display:flex; align-items:center; gap:0; overflow-x:auto; padding:4px 2px;
+  scrollbar-width:none;
+}
+.progress-track::-webkit-scrollbar{display:none;}
+.node-wrap{display:flex; align-items:center; flex:0 0 auto;}
+.node{
+  width:30px; height:30px; border-radius:50%; flex:0 0 auto;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--panel-solid); border:2px solid var(--line);
+  font-size:12px; font-weight:800; color:var(--ink-dimmer);
+  transition:all .35s ease; cursor:default; position:relative;
+}
+.node[data-done="true"]{background:linear-gradient(140deg,var(--cyan),var(--cyan-deep)); border-color:var(--cyan); color:#04202b; box-shadow:0 0 14px rgba(79,227,255,0.5);}
+.node[data-current="true"]{border-color:var(--gold); box-shadow:0 0 0 4px rgba(255,201,74,0.18); animation:nodePulse 1.6s ease-in-out infinite;}
+@keyframes nodePulse{0%,100%{box-shadow:0 0 0 4px rgba(255,201,74,0.18);}50%{box-shadow:0 0 0 8px rgba(255,201,74,0.05);}}
+.node-line{width:22px; height:2px; background:var(--line); flex:0 0 auto;}
+.node-line[data-done="true"]{background:linear-gradient(90deg,var(--cyan),var(--cyan-deep));}
+.hud-right{display:flex; align-items:center; gap:8px; flex:0 0 auto;}
+.xp-pill{
+  display:flex; align-items:center; gap:6px;
+  background:linear-gradient(140deg, rgba(255,201,74,0.18), rgba(255,157,46,0.10));
+  border:1px solid rgba(255,201,74,0.4);
+  padding:6px 12px 6px 8px; border-radius:999px; font-weight:800; font-size:13px; color:var(--gold);
+  white-space:nowrap;
+}
+.xp-pill svg{width:16px; height:16px;}
+.icon-btn{
+  width:36px; height:36px; border-radius:50%; border:1px solid var(--line); background:var(--panel);
+  color:var(--ink); display:flex; align-items:center; justify-content:center; cursor:pointer; flex:0 0 auto;
+  transition:background .2s, transform .15s;
+}
+.icon-btn:hover{background:var(--panel-strong); transform:translateY(-1px);}
+.icon-btn:active{transform:translateY(0) scale(.94);}
+.icon-btn svg{width:18px; height:18px;}
+
+/* ---- Stage ---- */
+#stage{flex:1; position:relative; padding:26px 16px 140px; max-width:980px; margin:0 auto; width:100%;}
+.scene{display:none;}
+.scene.active{display:block; animation:fadeUp .55s cubic-bezier(.2,.8,.2,1);}
+@keyframes fadeUp{from{opacity:0; transform:translateY(18px);} to{opacity:1; transform:translateY(0);}}
+
+.scene-kicker{
+  display:inline-flex; align-items:center; gap:8px; font-weight:800; font-size:12.5px;
+  letter-spacing:.06em; text-transform:uppercase; color:var(--cyan); background:rgba(79,227,255,0.1);
+  border:1px solid rgba(79,227,255,0.3); padding:6px 12px; border-radius:999px; margin-bottom:14px;
+}
+.scene-title{font-size:clamp(26px,5vw,38px); font-weight:800; margin-bottom:8px;}
+.scene-sub{color:var(--ink-dim); font-size:16px; font-weight:600; max-width:60ch; margin-bottom:22px;}
+
+.panel{
+  background:var(--panel); border:1px solid var(--line); border-radius:var(--r-xl);
+  padding:22px; backdrop-filter:blur(10px); box-shadow:var(--shadow-soft);
+}
+
+/* ---- Buttons ---- */
+.btn{
+  font-family:var(--font-d); font-weight:700; font-size:15px; border-radius:999px; border:none;
+  padding:13px 26px; cursor:pointer; display:inline-flex; align-items:center; gap:8px; justify-content:center;
+  transition:transform .15s ease, box-shadow .2s ease, opacity .2s;
+  -webkit-tap-highlight-color:transparent;
+}
+.btn:active{transform:scale(.96);}
+.btn:disabled{opacity:.4; cursor:not-allowed;}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),var(--cyan-deep)); color:#04212c; box-shadow:0 10px 24px -8px rgba(79,227,255,0.55);}
+.btn-primary:not(:disabled):hover{box-shadow:0 14px 30px -8px rgba(79,227,255,0.7); transform:translateY(-2px);}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold-deep)); color:#2b1600; box-shadow:0 10px 24px -8px rgba(255,180,50,0.55);}
+.btn-gold:not(:disabled):hover{transform:translateY(-2px);}
+.btn-ghost{background:var(--panel); color:var(--ink); border:1px solid var(--line);}
+.btn-ghost:hover{background:var(--panel-strong);}
+.scene-nav{display:flex; justify-content:space-between; align-items:center; margin-top:28px; gap:12px; flex-wrap:wrap;}
+.hint-text{font-size:13.5px; color:var(--ink-dimmer); font-weight:700;}
+
+/* ============================= MASCOT ============================= */
+.byte-svg{display:block;}
+.byte-svg .eye-l, .byte-svg .eye-r{animation:blink 4.5s ease-in-out infinite;}
+.byte-svg .eye-r{animation-delay:.15s;}
+@keyframes blink{0%,90%,100%{transform:scaleY(1);} 94%{transform:scaleY(.12);}}
+.byte-svg .sensor{animation:scan 2.4s ease-in-out infinite;}
+.byte-svg .sensor:nth-child(2){animation-delay:.25s;}
+.byte-svg .sensor:nth-child(3){animation-delay:.5s;}
+@keyframes scan{0%,100%{opacity:.35;}50%{opacity:1;}}
+.byte-svg .antenna-light{animation:scan 1.6s ease-in-out infinite;}
+.byte-svg .core-glow{opacity:0; transition:opacity .6s ease;}
+.byte-svg .core-fill{fill:#2a2d55;}
+.byte-svg.powered .core-fill{fill:url(#coreGradient);}
+.byte-svg.powered .core-glow{opacity:1; animation:corePulse 1.8s ease-in-out infinite;}
+@keyframes corePulse{0%,100%{opacity:.55; transform:scale(1);}50%{opacity:1; transform:scale(1.12);}}
+.byte-bob{animation:bob 3.2s ease-in-out infinite;}
+@keyframes bob{0%,100%{transform:translateY(0);}50%{transform:translateY(-8px);}}
+
+.byte-helper{
+  position:fixed; left:14px; bottom:14px; z-index:50;
+  display:flex; align-items:flex-end; gap:10px; max-width:min(92vw,420px);
+}
+.byte-helper .byte-mini-btn{background:transparent; border:none; cursor:pointer; padding:0; line-height:0;}
+.speech-bubble{
+  background:var(--panel-solid); border:1px solid var(--line); border-radius:18px 18px 18px 4px;
+  padding:12px 14px; font-weight:700; font-size:14px; color:var(--ink);
+  box-shadow:var(--shadow-soft); position:relative; max-width:300px;
+}
+
+/* ============================= COMPONENTS ============================= */
+
+/* toast */
+#toast-region{position:fixed; top:70px; right:14px; z-index:60; display:flex; flex-direction:column; gap:8px; align-items:flex-end;}
+.toast{
+  background:linear-gradient(135deg, rgba(255,201,74,0.95), rgba(255,157,46,0.95));
+  color:#2b1600; font-family:var(--font-d); font-weight:800; font-size:14px;
+  padding:10px 16px; border-radius:999px; box-shadow:0 12px 26px -8px rgba(255,157,46,0.6);
+  animation:toastIn .35s ease, toastOut .4s ease 2.1s forwards;
+}
+@keyframes toastIn{from{opacity:0; transform:translateX(30px);} to{opacity:1; transform:translateX(0);}}
+@keyframes toastOut{to{opacity:0; transform:translateX(30px);}}
+
+/* mission note card */
+.note-card{
+  background:linear-gradient(160deg, #2a2450, #1a1740);
+  border:1px solid rgba(155,139,255,0.4); border-radius:var(--r-lg);
+  padding:20px; position:relative; box-shadow:var(--shadow-soft);
+  font-size:15.5px; color:var(--ink); font-weight:600;
+}
+.note-card::before{content:"✉ From Professor Nova"; display:block; font-family:var(--font-d); font-weight:700; color:var(--violet); font-size:12.5px; letter-spacing:.05em; text-transform:uppercase; margin-bottom:8px;}
+
+/* story lines */
+.story-line{
+  opacity:0; transform:translateY(10px); transition:opacity .5s ease, transform .5s ease;
+  font-size:18px; font-weight:700; margin-bottom:10px; min-height:1.4em;
+}
+.story-line.show{opacity:1; transform:translateY(0);}
+
+/* mission card (game) */
+.mission-card{
+  background:linear-gradient(135deg, rgba(79,227,255,0.14), rgba(155,139,255,0.08));
+  border:1px solid rgba(79,227,255,0.35); border-radius:var(--r-lg); padding:18px 20px; margin-bottom:20px;
+}
+.mission-card .m-label{font-size:12px; font-weight:800; text-transform:uppercase; letter-spacing:.06em; color:var(--cyan); margin-bottom:6px;}
+.mission-card .m-text{font-size:19px; font-weight:800;}
+
+.chip-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(130px,1fr)); gap:12px; margin-bottom:20px;}
+.chip{
+  background:var(--panel-solid); border:1px solid var(--line); border-radius:var(--r-md);
+  padding:16px 10px; text-align:center; cursor:pointer; transition:transform .15s, border-color .2s, background .2s;
+  display:flex; flex-direction:column; align-items:center; gap:8px;
+}
+.chip:hover:not(:disabled){transform:translateY(-3px); border-color:var(--cyan);}
+.chip:active:not(:disabled){transform:translateY(0) scale(.96);}
+.chip[disabled]{opacity:.3; cursor:default;}
+.chip .chip-name{font-weight:800; font-size:13px;}
+.chip.wrong{animation:shake .4s ease;}
+.chip.correct{border-color:var(--green); background:rgba(91,232,154,0.12);}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);}}
+
+.circuit-tray{
+  display:flex; gap:10px; flex-wrap:wrap; min-height:64px; padding:12px; border-radius:var(--r-md);
+  border:2px dashed rgba(79,227,255,0.35); background:rgba(79,227,255,0.04); margin-bottom:8px; align-items:center;
+}
+.circuit-tray .placed{display:flex; align-items:center; gap:6px; background:rgba(91,232,154,0.15); border:1px solid rgba(91,232,154,0.5); border-radius:999px; padding:6px 12px 6px 8px; font-weight:800; font-size:12.5px;}
+.circuit-tray .placed-empty{color:var(--ink-dimmer); font-weight:700; font-size:13.5px;}
+
+.mcq-list{display:flex; flex-direction:column; gap:10px; margin-top:14px;}
+.mcq-opt{
+  text-align:left; background:var(--panel-solid); border:1px solid var(--line); border-radius:var(--r-md);
+  padding:14px 16px; font-weight:700; font-size:15px; cursor:pointer; transition:all .2s;
+}
+.mcq-opt:hover:not([disabled]){border-color:var(--cyan);}
+.mcq-opt.correct{border-color:var(--green); background:rgba(91,232,154,0.14);}
+.mcq-opt.wrong{border-color:var(--coral); background:rgba(255,122,122,0.12); animation:shake .4s ease;}
+.mcq-opt[disabled]{cursor:default;}
+.feedback-box{margin-top:12px; padding:12px 14px; border-radius:var(--r-md); font-weight:700; font-size:14.5px; display:none;}
+.feedback-box.show{display:block; animation:fadeUp .4s ease;}
+.feedback-box.ok{background:rgba(91,232,154,0.14); border:1px solid rgba(91,232,154,0.5); color:var(--green);}
+
+/* discussion flip card */
+.flip-wrap{perspective:1400px; margin-bottom:16px;}
+.flip-card{position:relative; min-height:200px; transform-style:preserve-3d; transition:transform .6s cubic-bezier(.2,.8,.2,1);}
+.flip-card.flipped{transform:rotateY(180deg);}
+.flip-face{position:absolute; inset:0; backface-visibility:hidden; border-radius:var(--r-lg); padding:24px; display:flex; flex-direction:column; justify-content:center;}
+.flip-front{background:linear-gradient(150deg,#20235a,#171a44); border:1px solid var(--line);}
+.flip-back{background:linear-gradient(150deg,#123626,#0f2a3a); border:1px solid rgba(91,232,154,0.4); transform:rotateY(180deg);}
+.flip-eyebrow{font-size:11.5px; font-weight:800; text-transform:uppercase; letter-spacing:.07em; color:var(--ink-dimmer); margin-bottom:10px;}
+.flip-front .flip-eyebrow{color:var(--cyan);}
+.flip-back .flip-eyebrow{color:var(--green);}
+.flip-q{font-size:19px; font-weight:800;}
+.flip-a{font-size:16.5px; font-weight:700; color:var(--ink);}
+.disc-controls{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-top:6px;}
+.disc-dots{font-weight:800; color:var(--ink-dim); font-size:13px;}
+
+/* theory concept grid */
+.concept-grid{display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:12px;}
+.concept-card{
+  background:var(--panel-solid); border:1px solid var(--line); border-radius:var(--r-md); padding:14px 16px;
+  display:flex; gap:12px; align-items:flex-start; opacity:0; transform:translateY(12px); animation:fadeUp .5s ease forwards;
+}
+.concept-card .c-icon{flex:0 0 auto; width:34px; height:34px; border-radius:10px; background:rgba(79,227,255,0.15); display:flex; align-items:center; justify-content:center; font-size:17px;}
+.concept-card .c-text{font-weight:700; font-size:14.5px; color:var(--ink);}
+.timer-chip{display:inline-flex; align-items:center; gap:6px; background:rgba(255,201,74,0.14); border:1px solid rgba(255,201,74,0.4); color:var(--gold); font-weight:800; font-size:12.5px; padding:5px 12px; border-radius:999px; margin-bottom:16px;}
+
+/* drawing */
+.draw-toolbar{display:flex; flex-wrap:wrap; gap:10px; align-items:center; margin-bottom:14px;}
+.swatch-row{display:flex; gap:8px;}
+.swatch{width:30px; height:30px; border-radius:50%; border:2px solid rgba(255,255,255,0.5); cursor:pointer; transition:transform .15s;}
+.swatch.active{transform:scale(1.18); border-color:#fff; box-shadow:0 0 0 3px rgba(255,255,255,0.25);}
+.tool-btn{background:var(--panel-solid); border:1px solid var(--line); color:var(--ink); border-radius:var(--r-sm); padding:8px 12px; font-weight:800; font-size:13px; cursor:pointer;}
+.tool-btn.active{border-color:var(--cyan); color:var(--cyan); background:rgba(79,227,255,0.1);}
+#drawCanvas{width:100%; height:auto; aspect-ratio:16/10; background:#f4f1ff; border-radius:var(--r-md); touch-action:none; box-shadow:inset 0 0 0 1px rgba(0,0,0,0.06);}
+.partner-box{margin-top:16px;}
+.partner-box label{display:block; font-weight:800; font-size:13.5px; color:var(--ink-dim); margin-bottom:6px;}
+textarea.field{
+  width:100%; min-height:70px; resize:vertical; border-radius:var(--r-md); border:1px solid var(--line);
+  background:var(--panel-solid); color:var(--ink); padding:12px 14px; font-family:var(--font-b); font-size:14.5px; font-weight:600;
+}
+input.field{width:100%; border-radius:999px; border:1px solid var(--line); background:var(--panel-solid); color:var(--ink); padding:12px 16px; font-family:var(--font-b); font-size:15px; font-weight:700;}
+
+/* hardware checklist */
+.step-list{display:flex; flex-direction:column; gap:10px; margin-bottom:20px;}
+.step-item{
+  display:flex; gap:12px; align-items:flex-start; background:var(--panel-solid); border:1px solid var(--line);
+  border-radius:var(--r-md); padding:13px 15px; cursor:pointer;
+}
+.step-item .step-check{
+  flex:0 0 auto; width:24px; height:24px; border-radius:8px; border:2px solid var(--ink-dimmer);
+  display:flex; align-items:center; justify-content:center; margin-top:1px; transition:all .2s;
+}
+.step-item.done .step-check{background:var(--green); border-color:var(--green);}
+.step-item.done .step-text{color:var(--ink-dim); text-decoration:line-through; text-decoration-color:rgba(174,177,222,0.5);}
+.step-text{font-weight:700; font-size:14.5px;}
+
+.test-power-panel{
+  display:flex; flex-wrap:wrap; gap:22px; align-items:center; justify-content:center;
+  background:linear-gradient(160deg,#171a44,#0f1130); border:1px solid var(--line); border-radius:var(--r-lg);
+  padding:24px; margin-bottom:18px;
+}
+.toggle-switch{
+  width:82px; height:42px; border-radius:999px; background:#2a2d55; border:2px solid var(--line);
+  position:relative; cursor:pointer; transition:background .3s;
+}
+.toggle-switch .knob{
+  position:absolute; top:3px; left:3px; width:32px; height:32px; border-radius:50%;
+  background:linear-gradient(145deg,#eee,#bbb); transition:left .3s cubic-bezier(.3,1.4,.4,1); box-shadow:0 3px 6px rgba(0,0,0,0.4);
+}
+.toggle-switch.on{background:linear-gradient(135deg,var(--gold),var(--gold-deep)); border-color:var(--gold);}
+.toggle-switch.on .knob{left:47px;}
+.test-status{font-family:var(--font-d); font-weight:700; font-size:15px; text-align:center;}
+.led-demo{width:60px; height:60px; border-radius:50%; background:#3a3d66; border:3px solid #4b4e7a; transition:all .3s; display:flex; align-items:center; justify-content:center;}
+.led-demo.lit{background:radial-gradient(circle at 40% 35%, #fff6d0, var(--gold) 60%, var(--gold-deep)); border-color:var(--gold); box-shadow:0 0 30px 6px rgba(255,201,74,0.7);}
+
+details.debug-acc{background:var(--panel-solid); border:1px solid var(--line); border-radius:var(--r-md); padding:12px 16px; margin-bottom:6px;}
+details.debug-acc summary{cursor:pointer; font-weight:800; font-size:14px; color:var(--coral);}
+details.debug-acc ul{margin:10px 0 0; padding-left:20px; font-size:13.5px; color:var(--ink-dim); font-weight:600; line-height:1.7;}
+
+/* challenge checklist */
+.req-list{display:flex; flex-direction:column; gap:10px; margin-bottom:8px;}
+.req-item{display:flex; gap:12px; align-items:center; background:var(--panel-solid); border:1px solid var(--line); border-radius:var(--r-md); padding:14px 16px; cursor:pointer;}
+.req-item.bonus{border-style:dashed; border-color:rgba(255,201,74,0.5);}
+.req-item.done{border-color:var(--green); background:rgba(91,232,154,0.1);}
+.req-item .req-check{width:26px; height:26px; border-radius:50%; border:2px solid var(--ink-dimmer); flex:0 0 auto; display:flex; align-items:center; justify-content:center; transition:all .2s;}
+.req-item.done .req-check{background:var(--green); border-color:var(--green);}
+.req-text{font-weight:700; font-size:14.5px; flex:1;}
+.req-tag{font-size:11px; font-weight:800; text-transform:uppercase; color:var(--gold); background:rgba(255,201,74,0.14); padding:3px 9px; border-radius:999px;}
+
+/* reflection cards */
+.reflect-card{background:linear-gradient(150deg,#20235a,#171a44); border:1px solid var(--line); border-radius:var(--r-lg); padding:22px;}
+.reflect-q{font-size:18.5px; font-weight:800; margin-bottom:14px;}
+.reflect-controls{display:flex; align-items:center; justify-content:space-between; margin-top:14px;}
+
+/* celebration */
+.celebrate-hero{text-align:center; padding:10px 0 24px;}
+.badge-hex{
+  width:150px; height:170px; margin:0 auto 14px; position:relative;
+  clip-path:polygon(50% 0%, 100% 25%, 100% 75%, 50% 100%, 0% 75%, 0% 25%);
+  background:linear-gradient(150deg,var(--gold),var(--gold-deep));
+  display:flex; align-items:center; justify-content:center; box-shadow:0 20px 40px -10px rgba(255,157,46,0.6);
+  animation:badgePop .7s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes badgePop{0%{transform:scale(0) rotate(-25deg); opacity:0;}70%{transform:scale(1.12) rotate(6deg);}100%{transform:scale(1) rotate(0);}}
+.badge-hex svg{width:70px; height:70px;}
+.xp-counter-big{font-family:var(--font-d); font-weight:800; font-size:44px; color:var(--gold); text-shadow:0 0 20px rgba(255,201,74,0.5);}
+.cert-card{
+  background:repeating-linear-gradient(135deg, rgba(255,255,255,0.03) 0 2px, transparent 2px 26px), linear-gradient(160deg,#1a1d4f,#12143c);
+  border:2px solid rgba(255,201,74,0.4); border-radius:var(--r-lg); padding:26px; text-align:center; position:relative;
+}
+.cert-card .cert-kicker{font-size:12px; font-weight:800; letter-spacing:.12em; text-transform:uppercase; color:var(--gold); margin-bottom:10px;}
+.cert-name-line{font-family:var(--font-d); font-size:26px; font-weight:800; margin:10px 0; min-height:1.3em; color:var(--ink);}
+.cert-body{font-size:14.5px; font-weight:600; color:var(--ink-dim); max-width:46ch; margin:0 auto;}
+
+.homework-card{
+  display:flex; gap:16px; align-items:flex-start; background:linear-gradient(135deg, rgba(155,139,255,0.16), rgba(79,227,255,0.06));
+  border:1px solid rgba(155,139,255,0.35); border-radius:var(--r-lg); padding:20px; margin-top:22px;
+}
+.homework-card .hw-icon{flex:0 0 auto; width:44px; height:44px; border-radius:12px; background:rgba(155,139,255,0.25); display:flex; align-items:center; justify-content:center; font-size:22px;}
+
+/* confetti canvas */
+#confetti-canvas{position:fixed; inset:0; z-index:70; pointer-events:none;}
+
+/* splash */
+#splash{
+  position:fixed; inset:0; z-index:100; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:18px;
+  background:radial-gradient(1000px 700px at 50% 30%, #1e2166, #0b0c28 70%); transition:opacity .6s ease, visibility .6s;
+}
+#splash.hide{opacity:0; visibility:hidden; pointer-events:none;}
+.splash-title{font-size:clamp(24px,6vw,34px); font-weight:800; text-align:center;}
+.splash-sub{color:var(--ink-dim); font-weight:700; text-align:center; max-width:36ch;}
+
+/* two-col util */
+.two-col{display:grid; grid-template-columns:1fr; gap:18px;}
+@media(min-width:720px){.two-col{grid-template-columns:1.1fr .9fr;}}
+
+@media (prefers-reduced-motion: reduce){
+  *{animation-duration:0.001ms !important; animation-iteration-count:1 !important; transition-duration:0.001ms !important;}
+}
+</style>
+</head>
+<body>
+
+<div class="blueprint-bg" aria-hidden="true"></div>
+<div class="bg-orb orb-a" aria-hidden="true"></div>
+<div class="bg-orb orb-b" aria-hidden="true"></div>
+<div id="toast-region" aria-live="polite"></div>
+<canvas id="confetti-canvas" aria-hidden="true"></canvas>
+
+<!-- ============================= SPLASH ============================= -->
+<div id="splash">
+  <div class="byte-bob" id="splashMascot"></div>
+  <h1 class="splash-title">Mission 4: The Glowing Power Core</h1>
+  <p class="splash-sub">Robot Byte needs Secret Inventors like you to design his glowing heart.</p>
+  <button class="btn btn-primary" id="startBtn">▶ Start Mission</button>
+</div>
+
+<div class="app-shell">
+
+  <!-- ============================= TOPBAR ============================= -->
+  <header class="topbar">
+    <div class="brand"><span class="dot" aria-hidden="true"></span>BuildBots AI</div>
+    <nav class="progress-track" id="progressTrack" aria-label="Mission progress"></nav>
+    <div class="hud-right">
+      <div class="xp-pill" id="xpPill" aria-live="polite">
+        <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.6 6.2L21 9l-4.9 4.3L17.5 20 12 16.6 6.5 20l1.4-6.7L3 9l6.4-.8L12 2z" fill="currentColor"/></svg>
+        <span id="xpValue">0</span> XP
+      </div>
+      <button class="icon-btn" id="soundToggle" aria-pressed="true" aria-label="Toggle sound effects">
+        <svg id="soundIconOn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M16.5 8.5a5 5 0 010 7"/></svg>
+        <svg id="soundIconOff" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display:none"><path d="M4 9v6h4l5 5V4L8 9H4z"/><path d="M22 9l-6 6M16 9l6 6"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- ============================= STAGE ============================= -->
+  <main id="stage">
+
+    <!-- SCENE 1 — STORY -->
+    <section class="scene" data-scene="1" aria-labelledby="h1">
+      <span class="scene-kicker">Mission Briefing</span>
+      <h2 class="scene-title" id="h1" tabindex="-1">Byte's Heart Is Missing!</h2>
+      <p class="scene-sub">Professor Nova's secret workshop • Robot Byte needs you.</p>
+
+      <div class="two-col">
+        <div class="panel" style="display:flex; align-items:center; justify-content:center; min-height:260px;">
+          <div id="storyMascotHolder" class="byte-bob"></div>
+        </div>
+        <div class="panel">
+          <div id="storyLines">
+            <p class="story-line" data-i="0">Robot Byte is fixed and ready... almost!</p>
+            <p class="story-line" data-i="1">Look closely — his chest is dark. His glowing power core is missing!</p>
+            <p class="story-line" data-i="2">Professor Nova left something behind for the Secret Inventors...</p>
+          </div>
+          <button class="btn btn-ghost" id="storyNextBtn">Tap to continue ▸</button>
+
+          <div id="noteWrap" style="display:none; margin-top:16px;">
+            <div class="note-card">
+              "You've learned how to make light, control light, and guide robots with signals. Now — create something of your own."
+              <br><br><strong>Mission: Can you design a power core worthy of Robot Byte?</strong>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="scene-nav">
+        <span></span>
+        <button class="btn btn-primary" id="acceptMissionBtn" disabled>Accept Mission 🔧</button>
+      </div>
+    </section>
+
+    <!-- SCENE 2 — GAME: Circuit Builder's Toolbox -->
+    <section class="scene" data-scene="2" aria-labelledby="h2">
+      <span class="scene-kicker">Mini Game</span>
+      <h2 class="scene-title" id="h2" tabindex="-1">Circuit Builder's Toolbox</h2>
+      <p class="scene-sub">Tap the part that matches each mission before Byte's toolbox closes!</p>
+
+      <div class="panel">
+        <div class="mission-card" id="gameMissionCard">
+          <div class="m-label">Mission <span id="gameMissionNum">1</span> of 4</div>
+          <div class="m-text" id="gameMissionText">Find the part that gives energy.</div>
+        </div>
+
+        <div class="chip-grid" id="chipGrid"></div>
+
+        <div class="m-label" style="margin-bottom:8px;">Byte's Circuit Tray</div>
+        <div class="circuit-tray" id="circuitTray"><span class="placed-empty">Nothing placed yet — start tapping!</span></div>
+
+        <div id="bonusQuizWrap" style="display:none; margin-top:22px;">
+          <div class="mission-card" style="background:linear-gradient(135deg, rgba(255,201,74,0.16), rgba(255,122,122,0.06)); border-color:rgba(255,201,74,0.4);">
+            <div class="m-label" style="color:var(--gold);">Bonus Round</div>
+            <div class="m-text">What would Byte's heart do without a resistor?</div>
+          </div>
+          <div class="mcq-list" id="bonusMcqList"></div>
+          <div class="feedback-box ok" id="bonusFeedback">Exactly! A resistor protects the LED by limiting the current — without it, the LED could burn out too fast.</div>
+        </div>
+      </div>
+
+      <div class="scene-nav">
+        <button class="btn btn-ghost" data-goto="1">◂ Back</button>
+        <button class="btn btn-primary" id="gameContinueBtn" disabled>Continue ▸</button>
+      </div>
+    </section>
+
+    <!-- SCENE 3 — DISCUSSION -->
+    <section class="scene" data-scene="3" aria-labelledby="h3">
+      <span class="scene-kicker">Circuit Talk</span>
+      <h2 class="scene-title" id="h3" tabindex="-1">Byte Wants to Know...</h2>
+      <p class="scene-sub">Think it through, then flip the card to check Byte's answer.</p>
+
+      <div class="flip-wrap">
+        <div class="flip-card" id="flipCard">
+          <div class="flip-face flip-front">
+            <div class="flip-eyebrow">Byte asks</div>
+            <div class="flip-q" id="discQ">—</div>
+          </div>
+          <div class="flip-face flip-back">
+            <div class="flip-eyebrow">Byte's answer</div>
+            <div class="flip-a" id="discA">—</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="disc-controls">
+        <button class="btn btn-ghost" id="flipBtn">🔄 Reveal Answer</button>
+        <span class="disc-dots" id="discProgress">1 / 9</span>
+      </div>
+      <div class="scene-nav">
+        <button class="btn btn-ghost" id="discPrevBtn">◂ Previous</button>
+        <button class="btn btn-primary" id="discNextBtn">Next Question ▸</button>
+      </div>
+    </section>
+
+    <!-- SCENE 4 — THEORY -->
+    <section class="scene" data-scene="4" aria-labelledby="h4">
+      <span class="scene-kicker">Quick Spark Facts</span>
+      <h2 class="scene-title" id="h4" tabindex="-1">How a Circuit Works</h2>
+      <p class="scene-sub">Nine tiny facts to power up your inventor brain.</p>
+      <span class="timer-chip">⏱ about 2 minutes</span>
+      <div class="panel">
+        <div class="concept-grid" id="conceptGrid"></div>
+      </div>
+      <div class="scene-nav">
+        <button class="btn btn-ghost" data-goto="3">◂ Back</button>
+        <button class="btn btn-primary" data-goto="5">I've Got It! ▸</button>
+      </div>
+    </section>
+
+    <!-- SCENE 5 — DRAWING -->
+    <section class="scene" data-scene="5" aria-labelledby="h5">
+      <span class="scene-kicker">Blueprint Studio</span>
+      <h2 class="scene-title" id="h5" tabindex="-1">Design Byte's Heart</h2>
+      <p class="scene-sub">Sketch your badge shape, then mark where the LED, battery, resistor, switch and wires go.</p>
+
+      <div class="panel">
+        <div class="draw-toolbar">
+          <div class="swatch-row" id="swatchRow"></div>
+          <button class="tool-btn active" data-size="4">Thin</button>
+          <button class="tool-btn" data-size="10">Thick</button>
+          <button class="tool-btn" id="stampBtn">✨ Stamp Shape</button>
+          <button class="tool-btn" id="clearCanvasBtn">🗑 Clear</button>
+        </div>
+        <canvas id="drawCanvas" width="900" height="560" aria-label="Drawing area for your badge design"></canvas>
+
+        <div class="partner-box">
+          <label for="partnerText">Explain your design to a partner — what will you tell them?</label>
+          <textarea class="field" id="partnerText" placeholder="My badge is shaped like a... The LED goes... "></textarea>
+        </div>
+      </div>
+
+      <div class="scene-nav">
+        <button class="btn btn-ghost" data-goto="4">◂ Back</button>
+        <button class="btn btn-primary" data-goto="6">Ready to Build ▸</button>
+      </div>
+    </section>
+
+    <!-- SCENE 6 — HARDWARE -->
+    <section class="scene" data-scene="6" aria-labelledby="h6">
+      <span class="scene-kicker">Real-World Build</span>
+      <h2 class="scene-title" id="h6" tabindex="-1">Build It For Real!</h2>
+      <p class="scene-sub">Work with your real components. Check off each step as you go, then test your power!</p>
+
+      <div class="panel">
+        <div class="step-list" id="stepList"></div>
+
+        <div class="test-power-panel">
+          <div style="text-align:center;">
+            <div class="toggle-switch" id="powerToggle" role="switch" aria-checked="false" aria-label="Test power switch" tabindex="0">
+              <div class="knob"></div>
+            </div>
+            <div class="hint-text" style="margin-top:8px;">Tap to test</div>
+          </div>
+          <div class="led-demo" id="ledDemo" aria-hidden="true"></div>
+          <div class="test-status" id="testStatus">Flip the switch to power Byte's heart</div>
+        </div>
+
+        <details class="debug-acc">
+          <summary>Not glowing? Debug like a real inventor 🔍</summary>
+          <ul>
+            <li>Check the circuit path — is it complete?</li>
+            <li>Check the battery — is it connected the right way?</li>
+            <li>Check the LED direction — long leg to positive.</li>
+            <li>Check the resistor — is it in the path?</li>
+            <li>Check every wire connection.</li>
+            <li>Check the switch — is it flipped on?</li>
+          </ul>
+        </details>
+      </div>
+
+      <div class="scene-nav">
+        <button class="btn btn-ghost" data-goto="5">◂ Back</button>
+        <button class="btn btn-primary" id="hardwareContinueBtn" disabled>My Badge Glows! ▸</button>
+      </div>
+    </section>
+
+    <!-- SCENE 7 — CHALLENGE -->
+    <section class="scene" data-scene="7" aria-labelledby="h7">
+      <span class="scene-kicker">The Power Core Challenge</span>
+      <h2 class="scene-title" id="h7" tabindex="-1">Check Your Invention</h2>
+      <p class="scene-sub">Tick off what your badge has. Bonus points for going further!</p>
+
+      <div class="panel">
+        <div class="req-list" id="reqList"></div>
+
+        <div class="partner-box">
+          <label for="presentText">What will you tell everyone about your invention?</label>
+          <textarea class="field" id="presentText" placeholder="I built... it works by... my favorite part is..."></textarea>
+        </div>
+      </div>
+
+      <div class="scene-nav">
+        <button class="btn btn-ghost" data-goto="6">◂ Back</button>
+        <button class="btn btn-primary" id="challengeContinueBtn" disabled>Present My Badge ▸</button>
+      </div>
+    </section>
+
+    <!-- SCENE 8 — REFLECTION -->
+    <section class="scene" data-scene="8" aria-labelledby="h8">
+      <span class="scene-kicker">Inventor Reflection</span>
+      <h2 class="scene-title" id="h8" tabindex="-1">Think Like an Inventor</h2>
+      <p class="scene-sub">Answer out loud, or type a few words if you like.</p>
+
+      <div class="reflect-card">
+        <div class="reflect-q" id="reflectQ">—</div>
+        <textarea class="field" id="reflectAnswer" placeholder="Type here, or just say it out loud!"></textarea>
+        <div class="reflect-controls">
+          <span class="disc-dots" id="reflectProgress">Q 1 / 9</span>
+          <div style="display:flex; gap:10px;">
+            <button class="btn btn-ghost" id="reflectPrevBtn">◂</button>
+            <button class="btn btn-primary" id="reflectNextBtn">Next ▸</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="scene-nav">
+        <button class="btn btn-ghost" data-goto="7">◂ Back</button>
+        <span class="hint-text">Finish all questions to unlock your celebration</span>
+      </div>
+    </section>
+
+    <!-- SCENE 9 — CELEBRATION -->
+    <section class="scene" data-scene="9" aria-labelledby="h9">
+      <span class="scene-kicker">Mission Complete</span>
+      <h2 class="scene-title" id="h9" tabindex="-1">Byte's Heart Is Glowing!</h2>
+      <p class="scene-sub">You did it — Robot Byte is powered up, thanks to you.</p>
+
+      <div class="celebrate-hero panel">
+        <div id="celebrateMascotHolder" style="display:flex; justify-content:center; margin-bottom:10px;"></div>
+        <div class="badge-hex">
+          <svg viewBox="0 0 24 24" fill="none"><path d="M12 2l2.6 6.2L21 9l-4.9 4.3L17.5 20 12 16.6 6.5 20l1.4-6.7L3 9l6.4-.8L12 2z" fill="#2b1600"/></svg>
+        </div>
+        <h3 style="font-size:20px;">Junior Circuit Inventor</h3>
+        <div class="xp-counter-big"><span id="bigXp">0</span> XP</div>
+        <button class="btn btn-gold" id="celebrateAgainBtn" style="margin-top:16px;">🎉 Celebrate Again</button>
+      </div>
+
+      <div class="panel" style="margin-top:18px;">
+        <div class="cert-card">
+          <div class="cert-kicker">Certificate of Invention</div>
+          <input class="field" id="certName" placeholder="Type your name..." style="max-width:320px; margin:0 auto; text-align:center;">
+          <div class="cert-name-line" id="certNameDisplay">Secret Inventor</div>
+          <p class="cert-body">has successfully designed and built a glowing power core for Robot Byte, earning the rank of Junior Circuit Inventor.</p>
+        </div>
+      </div>
+
+      <div class="homework-card">
+        <div class="hw-icon">🏠</div>
+        <div>
+          <h3 style="font-size:16px; margin-bottom:6px;">Homework: Inventor Show-and-Tell</h3>
+          <p style="font-size:14px; color:var(--ink-dim); font-weight:600;">Show your LED badge to someone at home. Point to the battery, LED, resistor, wires, and switch. Then draw <strong>Version 2</strong> of your badge with one new feature — another light, a new shape, a button, or a new robot symbol.</p>
+        </div>
+      </div>
+
+      <div class="scene-nav">
+        <button class="btn btn-ghost" id="restartBtn">↺ Restart Mission</button>
+        <span></span>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- byte helper widget -->
+<div class="byte-helper">
+  <button class="byte-mini-btn" id="byteMiniBtn" aria-label="Byte tip — tap for a hint">
+    <div id="miniMascotHolder"></div>
+  </button>
+  <div class="speech-bubble" id="byteSpeech" aria-live="polite">Hi! I'm Byte. Let's build my heart together!</div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================= MASCOT SVG ============================= */
+function mascotSVG(size, extraClass){
+  size = size || 140;
+  return '<svg class="byte-svg '+(extraClass||'')+'" width="'+size+'" height="'+(size*1.15)+'" viewBox="0 0 200 230" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Robot Byte">'+
+  '<defs>'+
+    '<radialGradient id="coreGradient" cx="50%" cy="45%" r="60%">'+
+      '<stop offset="0%" stop-color="#fff6d6"/><stop offset="45%" stop-color="#ffc94a"/><stop offset="100%" stop-color="#ff9d2e"/>'+
+    '</radialGradient>'+
+    '<radialGradient id="glowGrad" cx="50%" cy="50%" r="50%">'+
+      '<stop offset="0%" stop-color="#ffc94a" stop-opacity="0.65"/><stop offset="100%" stop-color="#ffc94a" stop-opacity="0"/>'+
+    '</radialGradient>'+
+  '</defs>'+
+  '<ellipse cx="100" cy="215" rx="46" ry="8" fill="#000" opacity="0.18"/>'+
+  '<line x1="100" y1="18" x2="100" y2="38" stroke="#8b93c4" stroke-width="4" stroke-linecap="round"/>'+
+  '<circle class="antenna-light" cx="100" cy="14" r="7" fill="#4fe3ff"/>'+
+  '<rect x="34" y="118" width="18" height="52" rx="9" fill="#7b83b8"/>'+
+  '<rect x="148" y="118" width="18" height="52" rx="9" fill="#7b83b8"/>'+
+  '<circle cx="43" cy="176" r="9" fill="#5b6296"/><circle cx="157" cy="176" r="9" fill="#5b6296"/>'+
+  '<rect x="46" y="98" width="108" height="112" rx="30" fill="#c7cdf2"/>'+
+  '<rect x="46" y="98" width="108" height="112" rx="30" fill="none" stroke="#9aa3dd" stroke-width="3"/>'+
+  '<circle class="core-glow" cx="100" cy="152" r="34" fill="url(#glowGrad)"/>'+
+  '<circle class="core-fill" cx="100" cy="152" r="22" stroke="#8b93c4" stroke-width="3"/>'+
+  '<circle cx="100" cy="152" r="22" fill="none" stroke="#ffffff33" stroke-width="1.5"/>'+
+  '<rect x="60" y="38" width="80" height="66" rx="26" fill="#eef0ff"/>'+
+  '<rect x="60" y="38" width="80" height="66" rx="26" fill="none" stroke="#9aa3dd" stroke-width="3"/>'+
+  '<circle class="sensor" cx="80" cy="52" r="3.4" fill="#4fe3ff"/>'+
+  '<circle class="sensor" cx="100" cy="49" r="3.4" fill="#4fe3ff"/>'+
+  '<circle class="sensor" cx="120" cy="52" r="3.4" fill="#4fe3ff"/>'+
+  '<g class="eye-l" style="transform-origin:80px 74px;"><ellipse cx="80" cy="74" rx="13" ry="15" fill="#232759"/><circle cx="84" cy="69" r="4" fill="#fff"/></g>'+
+  '<g class="eye-r" style="transform-origin:120px 74px;"><ellipse cx="120" cy="74" rx="13" ry="15" fill="#232759"/><circle cx="124" cy="69" r="4" fill="#fff"/></g>'+
+  '<path d="M88 92 Q100 99 112 92" stroke="#232759" stroke-width="3.2" fill="none" stroke-linecap="round"/>'+
+  '</svg>';
+}
+function mountMascot(id, size, powered){
+  var el = document.getElementById(id);
+  if(!el) return;
+  el.innerHTML = mascotSVG(size, powered ? 'powered' : '');
+}
+function setPowered(on){
+  state.powered = on;
+  document.querySelectorAll('.byte-svg').forEach(function(svg){
+    svg.classList.toggle('powered', on);
+  });
+}
+
+/* ============================= AUDIO ============================= */
+var actx = null;
+function ensureAudio(){ if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } }
+function beep(freq, dur, type, vol, delay){
+  if(!state.sound || !actx) return;
+  var t = actx.currentTime + (delay||0);
+  var osc = actx.createOscillator(); var gain = actx.createGain();
+  osc.type = type || 'sine';
+  osc.frequency.setValueAtTime(freq, t);
+  gain.gain.setValueAtTime(0.0001, t);
+  gain.gain.linearRampToValueAtTime(vol||0.14, t+0.012);
+  gain.gain.exponentialRampToValueAtTime(0.0001, t + (dur||0.12));
+  osc.connect(gain).connect(actx.destination);
+  osc.start(t); osc.stop(t + (dur||0.12) + 0.03);
+}
+function sfxClick(){ ensureAudio(); beep(520,0.07,'triangle',0.10); }
+function sfxCorrect(){ ensureAudio(); beep(760,0.09,'sine',0.16); beep(1180,0.12,'sine',0.14,0.09); }
+function sfxWrong(){ ensureAudio(); beep(180,0.22,'sawtooth',0.11); }
+function sfxSuccess(){ ensureAudio(); [523,659,784,1046].forEach(function(f,i){beep(f,0.16,'sine',0.15,i*0.09);}); }
+function sfxCelebrate(){ ensureAudio(); [523,659,784,988,1318].forEach(function(f,i){beep(f,0.22,'sine',0.16,i*0.1);}); }
+
+/* ============================= STATE ============================= */
+var state = {
+  scene:1, xp:0, sound:true, powered:false,
+  gameStep:0, gameSolved:[false,false,false,false], bonusDone:false,
+  discIndex:0, discFlipped:false,
+  hardwareTested:false,
+  challengeChecks:{}, reflectIndex:0,
+  maxSceneReached:1
+};
+
+var TOTAL_SCENES = 9;
+
+var SCENE_TIPS = {
+  1:"Hi! I'm Byte. Let's find out what's missing from my chest!",
+  2:"Tap the toolbox part that matches each mission!",
+  3:"Guess my answer first, then flip the card to check!",
+  4:"These little facts will help you build for real.",
+  5:"Draw my heart any way you like — make it yours!",
+  6:"Grab your real parts and build along with the steps!",
+  7:"Check off everything your badge has. Bonus points for extra!",
+  8:"Tell me what you're thinking — there's no wrong answer.",
+  9:"You did it! My heart is glowing because of YOU!"
+};
+
+/* ============================= TOAST / XP ============================= */
+function toast(msg){
+  var region = document.getElementById('toast-region');
+  var t = document.createElement('div');
+  t.className = 'toast'; t.textContent = msg;
+  region.appendChild(t);
+  setTimeout(function(){ t.remove(); }, 2600);
+}
+function awardXP(n, msg){
+  state.xp += n;
+  document.getElementById('xpValue').textContent = state.xp;
+  document.getElementById('bigXp').textContent = state.xp;
+  toast('+'+n+' XP'+(msg?' — '+msg:''));
+  sfxCorrect();
+}
+
+/* ============================= CONFETTI ============================= */
+function burstConfetti(){
+  var canvas = document.getElementById('confetti-canvas');
+  var ctx = canvas.getContext('2d');
+  var w = canvas.width = window.innerWidth;
+  var h = canvas.height = window.innerHeight;
+  var colors = ['#4fe3ff','#ffc94a','#ff7a7a','#9b8bff','#5be89a'];
+  var particles = [];
+  for(var i=0;i<130;i++){
+    particles.push({
+      x: Math.random()*w, y: -20 - Math.random()*h*0.4,
+      s: 5+Math.random()*7, c: colors[Math.floor(Math.random()*colors.length)],
+      vy: 2+Math.random()*3.5, vx: -1.5+Math.random()*3, r: Math.random()*360, vr: -6+Math.random()*12
+    });
+  }
+  var start = Date.now();
+  function frame(){
+    var elapsed = Date.now()-start;
+    ctx.clearRect(0,0,w,h);
+    particles.forEach(function(p){
+      p.x += p.vx; p.y += p.vy; p.r += p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.r*Math.PI/180);
+      ctx.fillStyle = p.c; ctx.fillRect(-p.s/2,-p.s/2,p.s,p.s*0.6);
+      ctx.restore();
+    });
+    if(elapsed < 2600){ requestAnimationFrame(frame); }
+    else{ ctx.clearRect(0,0,w,h); }
+  }
+  frame();
+}
+
+/* ============================= NAVIGATION ============================= */
+function buildProgressTrack(){
+  var track = document.getElementById('progressTrack');
+  track.innerHTML = '';
+  for(var i=1;i<=TOTAL_SCENES;i++){
+    var wrap = document.createElement('span'); wrap.className='node-wrap';
+    var node = document.createElement('span');
+    node.className='node'; node.textContent = i; node.dataset.n = i;
+    wrap.appendChild(node);
+    if(i<TOTAL_SCENES){
+      var line = document.createElement('span'); line.className='node-line'; line.dataset.n=i;
+      wrap.appendChild(line);
+    }
+    track.appendChild(wrap);
+  }
+}
+function refreshProgressTrack(){
+  document.querySelectorAll('.node').forEach(function(n){
+    var idx = parseInt(n.dataset.n,10);
+    n.dataset.done = idx < state.scene ? "true" : "false";
+    n.dataset.current = idx === state.scene ? "true" : "false";
+  });
+  document.querySelectorAll('.node-line').forEach(function(l){
+    var idx = parseInt(l.dataset.n,10);
+    l.dataset.done = idx < state.scene ? "true" : "false";
+  });
+}
+function goToScene(n){
+  if(n<1) n=1; if(n>TOTAL_SCENES) n=TOTAL_SCENES;
+  state.scene = n;
+  state.maxSceneReached = Math.max(state.maxSceneReached, n);
+  document.querySelectorAll('.scene').forEach(function(s){
+    s.classList.toggle('active', parseInt(s.dataset.scene,10) === n);
+  });
+  refreshProgressTrack();
+  document.getElementById('byteSpeech').textContent = SCENE_TIPS[n] || "Let's keep building!";
+  window.scrollTo({top:0, behavior:'smooth'});
+  var heading = document.getElementById('h'+n);
+  if(heading){ setTimeout(function(){ heading.focus({preventScroll:true}); }, 250); }
+  sfxClick();
+  if(n===9){ setTimeout(function(){ burstConfetti(); sfxCelebrate(); setPowered(true); awardXP(50,'Mission Complete!'); }, 200); }
+}
+document.addEventListener('click', function(e){
+  var btn = e.target.closest('[data-goto]');
+  if(btn){ goToScene(parseInt(btn.dataset.goto,10)); }
+});
+
+/* ============================= SOUND TOGGLE ============================= */
+document.getElementById('soundToggle').addEventListener('click', function(){
+  state.sound = !state.sound;
+  this.setAttribute('aria-pressed', state.sound);
+  document.getElementById('soundIconOn').style.display = state.sound ? '' : 'none';
+  document.getElementById('soundIconOff').style.display = state.sound ? 'none' : '';
+  if(state.sound){ ensureAudio(); beep(660,0.08,'sine',0.12); }
+});
+
+/* ============================= BYTE HELPER ============================= */
+document.getElementById('byteMiniBtn').addEventListener('click', function(){
+  ensureAudio(); beep(880,0.1,'triangle',0.12);
+  var svg = this.querySelector('.byte-svg');
+  if(svg){ svg.parentElement.classList.add('byte-bob'); }
+});
+
+/* ============================= SCENE 1: STORY ============================= */
+var storyClicks = 0;
+var storyLines = document.querySelectorAll('.story-line');
+function revealNextLine(){
+  if(storyClicks < storyLines.length){
+    storyLines[storyClicks].classList.add('show');
+    storyClicks++;
+    sfxClick();
+    if(storyClicks === storyLines.length){
+      document.getElementById('storyNextBtn').textContent = 'Read the note ▸';
+    }
+  } else {
+    document.getElementById('noteWrap').style.display = 'block';
+    document.getElementById('storyNextBtn').style.display = 'none';
+    document.getElementById('acceptMissionBtn').disabled = false;
+    sfxCorrect();
+  }
+}
+document.getElementById('storyNextBtn').addEventListener('click', revealNextLine);
+document.getElementById('acceptMissionBtn').addEventListener('click', function(){ goToScene(2); });
+
+/* ============================= SCENE 2: GAME ============================= */
+var COMPONENTS = [
+  {id:'battery', name:'Battery', icon:'🔋'},
+  {id:'led', name:'LED', icon:'💡'},
+  {id:'resistor', name:'Resistor', icon:'▭'},
+  {id:'wire', name:'Wire', icon:'〰️'},
+  {id:'switch', name:'Switch', icon:'🔘'},
+  {id:'breadboard', name:'Breadboard', icon:'▦'}
+];
+var MISSIONS = [
+  {text:'Find the part that gives energy.', answer:'battery'},
+  {text:'Find the part that makes light.', answer:'led'},
+  {text:'Find the part that controls the light.', answer:'switch'},
+  {text:'Find the part that connects the path.', answer:'wire'}
+];
+var BONUS_OPTIONS = [
+  {text:'It would stay dark and never light up.', correct:false},
+  {text:'It might glow too bright and burn out fast.', correct:true},
+  {text:'Nothing would change at all.', correct:false}
+];
+
+function renderChipGrid(){
+  var grid = document.getElementById('chipGrid');
+  grid.innerHTML = '';
+  COMPONENTS.forEach(function(c){
+    var solvedIdx = MISSIONS.findIndex(function(m,i){ return m.answer===c.id && state.gameSolved[i]; });
+    var btn = document.createElement('button');
+    btn.className = 'chip'; btn.dataset.id = c.id;
+    if(solvedIdx>-1){ btn.disabled = true; btn.classList.add('correct'); }
+    btn.innerHTML = '<span style="font-size:26px;">'+c.icon+'</span><span class="chip-name">'+c.name+'</span>';
+    btn.addEventListener('click', function(){ handleChipClick(c.id, btn); });
+    grid.appendChild(btn);
+  });
+}
+function updateMissionCard(){
+  if(state.gameStep >= MISSIONS.length){ return; }
+  document.getElementById('gameMissionNum').textContent = state.gameStep+1;
+  document.getElementById('gameMissionText').textContent = MISSIONS[state.gameStep].text;
+}
+function renderTray(){
+  var tray = document.getElementById('circuitTray');
+  var placed = MISSIONS.filter(function(m,i){ return state.gameSolved[i]; });
+  if(placed.length===0){ tray.innerHTML = '<span class="placed-empty">Nothing placed yet — start tapping!</span>'; return; }
+  tray.innerHTML = placed.map(function(m){
+    var comp = COMPONENTS.find(function(c){return c.id===m.answer;});
+    return '<span class="placed">'+comp.icon+' '+comp.name+'</span>';
+  }).join('');
+}
+function handleChipClick(id, btn){
+  if(state.gameStep >= MISSIONS.length) return;
+  var mission = MISSIONS[state.gameStep];
+  if(id === mission.answer){
+    state.gameSolved[state.gameStep] = true;
+    btn.classList.add('correct'); btn.disabled = true;
+    sfxCorrect(); awardXP(5);
+    state.gameStep++;
+    renderTray();
+    if(state.gameStep >= MISSIONS.length){
+      document.getElementById('bonusQuizWrap').style.display = 'block';
+      renderBonusQuiz();
+    } else {
+      updateMissionCard();
+    }
+  } else {
+    btn.classList.add('wrong'); sfxWrong();
+    setTimeout(function(){ btn.classList.remove('wrong'); }, 400);
+  }
+}
+function renderBonusQuiz(){
+  var list = document.getElementById('bonusMcqList');
+  list.innerHTML = '';
+  BONUS_OPTIONS.forEach(function(opt){
+    var b = document.createElement('button');
+    b.className = 'mcq-opt'; b.textContent = opt.text;
+    b.addEventListener('click', function(){
+      if(state.bonusDone) return;
+      if(opt.correct){
+        b.classList.add('correct'); state.bonusDone = true;
+        document.querySelectorAll('#bonusMcqList .mcq-opt').forEach(function(o){o.disabled=true;});
+        document.getElementById('bonusFeedback').classList.add('show');
+        sfxSuccess(); awardXP(10,'Bonus!');
+        document.getElementById('gameContinueBtn').disabled = false;
+      } else {
+        b.classList.add('wrong'); sfxWrong();
+        setTimeout(function(){ b.classList.remove('wrong'); }, 400);
+      }
+    });
+    list.appendChild(b);
+  });
+}
+renderChipGrid(); updateMissionCard(); renderTray();
+
+/* ============================= SCENE 3: DISCUSSION ============================= */
+var DISCUSSION = [
+  {q:"What parts do we need to make Byte's heart glow?", a:"We need a battery, LED, resistor, wires, and possibly a switch."},
+  {q:"Which component gives our circuit energy?", a:"The battery provides the electrical energy."},
+  {q:"Which component makes the light?", a:"The LED produces the light."},
+  {q:"Why do we need a resistor with the LED?", a:"The resistor helps protect the LED by limiting current."},
+  {q:"What does the switch let us control?", a:"The switch lets us turn the light on and off."},
+  {q:"What happens if one connection is missing?", a:"The circuit may not work because the path is broken."},
+  {q:"How can we make our circuit look like Robot Byte's heart?", a:"We can arrange the components in a creative pattern inside the badge."},
+  {q:"Should every inventor build exactly the same design?", a:"No — inventors can create different designs."},
+  {q:"What makes your invention yours?", a:"Our design, colors, arrangement, and ideas make it personal."}
+];
+function renderDiscussion(){
+  var item = DISCUSSION[state.discIndex];
+  document.getElementById('discQ').textContent = item.q;
+  document.getElementById('discA').textContent = item.a;
+  document.getElementById('discProgress').textContent = (state.discIndex+1)+' / '+DISCUSSION.length;
+  document.getElementById('flipCard').classList.remove('flipped');
+  state.discFlipped = false;
+  document.getElementById('discPrevBtn').disabled = state.discIndex===0;
+  document.getElementById('discNextBtn').textContent = state.discIndex===DISCUSSION.length-1 ? 'Finish Talk ▸' : 'Next Question ▸';
+}
+document.getElementById('flipBtn').addEventListener('click', function(){
+  state.discFlipped = !state.discFlipped;
+  document.getElementById('flipCard').classList.toggle('flipped', state.discFlipped);
+  sfxClick();
+});
+document.getElementById('discPrevBtn').addEventListener('click', function(){
+  sfxClick();
+  if(state.discIndex>0){ state.discIndex--; renderDiscussion(); }
+});
+document.getElementById('discNextBtn').addEventListener('click', function(){
+  sfxClick();
+  if(state.discIndex < DISCUSSION.length-1){ state.discIndex++; renderDiscussion(); }
+  else { awardXP(10,'Great thinking!'); goToScene(4); }
+});
+renderDiscussion();
+
+/* ============================= SCENE 4: THEORY ============================= */
+var CONCEPTS = [
+  {icon:'🧩', text:'Electronic projects are systems — parts working together.'},
+  {icon:'🔋', text:'A battery provides electrical energy.'},
+  {icon:'💡', text:'An LED converts electrical energy into light.'},
+  {icon:'▭', text:'A resistor helps limit current through the LED.'},
+  {icon:'〰️', text:'Wires provide connections between components.'},
+  {icon:'🔘', text:'A switch controls whether the circuit is open or closed.'},
+  {icon:'▦', text:'A breadboard connects parts without soldering.'},
+  {icon:'🎨', text:'A great invention needs a working circuit AND a thoughtful design.'},
+  {icon:'🔍', text:"Inventors test their designs and fix what doesn't work."}
+];
+function renderConcepts(){
+  var grid = document.getElementById('conceptGrid');
+  grid.innerHTML = '';
+  CONCEPTS.forEach(function(c,i){
+    var card = document.createElement('div');
+    card.className = 'concept-card';
+    card.style.animationDelay = (i*0.07)+'s';
+    card.innerHTML = '<span class="c-icon">'+c.icon+'</span><span class="c-text">'+c.text+'</span>';
+    grid.appendChild(card);
+  });
+}
+renderConcepts();
+
+/* ============================= SCENE 5: DRAWING ============================= */
+var canvas = document.getElementById('drawCanvas');
+var cctx = canvas.getContext('2d');
+cctx.fillStyle = '#f4f1ff'; cctx.fillRect(0,0,canvas.width,canvas.height);
+var drawing = false, currentColor = '#ff6f6f', currentSize = 6, lastX=0, lastY=0;
+var PALETTE = ['#ff6f6f','#ffc94a','#4fe3ff','#5be89a','#9b8bff','#232759','#ffffff'];
+function renderSwatches(){
+  var row = document.getElementById('swatchRow');
+  row.innerHTML = '';
+  PALETTE.forEach(function(c,i){
+    var s = document.createElement('button');
+    s.className = 'swatch'+(i===0?' active':''); s.style.background = c; s.setAttribute('aria-label','Color '+c);
+    s.addEventListener('click', function(){
+      currentColor = c;
+      document.querySelectorAll('.swatch').forEach(function(x){x.classList.remove('active');});
+      s.classList.add('active'); sfxClick();
+    });
+    row.appendChild(s);
+  });
+}
+renderSwatches();
+document.querySelectorAll('.tool-btn[data-size]').forEach(function(b){
+  b.addEventListener('click', function(){
+    currentSize = parseInt(b.dataset.size,10);
+    document.querySelectorAll('.tool-btn[data-size]').forEach(function(x){x.classList.remove('active');});
+    b.classList.add('active'); sfxClick();
+  });
+});
+function getPos(e){
+  var rect = canvas.getBoundingClientRect();
+  var scaleX = canvas.width/rect.width, scaleY = canvas.height/rect.height;
+  var clientX = e.touches ? e.touches[0].clientX : e.clientX;
+  var clientY = e.touches ? e.touches[0].clientY : e.clientY;
+  return {x:(clientX-rect.left)*scaleX, y:(clientY-rect.top)*scaleY};
+}
+function startDraw(e){ drawing = true; var p = getPos(e); lastX=p.x; lastY=p.y; e.preventDefault(); }
+function moveDraw(e){
+  if(!drawing) return;
+  var p = getPos(e);
+  cctx.strokeStyle = currentColor; cctx.lineWidth = currentSize; cctx.lineCap='round'; cctx.lineJoin='round';
+  cctx.beginPath(); cctx.moveTo(lastX,lastY); cctx.lineTo(p.x,p.y); cctx.stroke();
+  lastX=p.x; lastY=p.y; e.preventDefault();
+}
+function endDraw(){ drawing = false; }
+canvas.addEventListener('mousedown', startDraw);
+canvas.addEventListener('mousemove', moveDraw);
+window.addEventListener('mouseup', endDraw);
+canvas.addEventListener('touchstart', startDraw, {passive:false});
+canvas.addEventListener('touchmove', moveDraw, {passive:false});
+canvas.addEventListener('touchend', endDraw);
+
+document.getElementById('clearCanvasBtn').addEventListener('click', function(){
+  cctx.fillStyle = '#f4f1ff'; cctx.fillRect(0,0,canvas.width,canvas.height); sfxClick();
+});
+var STAMPS = ['heart','star','lightning','robotface','crystal'];
+var stampIdx = 0;
+document.getElementById('stampBtn').addEventListener('click', function(){
+  drawStamp(STAMPS[stampIdx % STAMPS.length], canvas.width/2, canvas.height/2);
+  stampIdx++; sfxCorrect();
+});
+function drawStamp(type, cx, cy){
+  cctx.save();
+  cctx.fillStyle = currentColor; cctx.strokeStyle = '#232759'; cctx.lineWidth = 3;
+  cctx.beginPath();
+  if(type==='heart'){
+    var s=70;
+    cctx.moveTo(cx, cy+s*0.3);
+    cctx.bezierCurveTo(cx-s, cy-s*0.6, cx-s*1.4, cy+s*0.5, cx, cy+s*1.1);
+    cctx.bezierCurveTo(cx+s*1.4, cy+s*0.5, cx+s, cy-s*0.6, cx, cy+s*0.3);
+  } else if(type==='star'){
+    var spikes=5, outerR=70, innerR=30, rot=Math.PI/2*3, step=Math.PI/spikes;
+    cctx.moveTo(cx, cy-outerR);
+    for(var i=0;i<spikes;i++){
+      cctx.lineTo(cx+Math.cos(rot)*outerR, cy+Math.sin(rot)*outerR); rot+=step;
+      cctx.lineTo(cx+Math.cos(rot)*innerR, cy+Math.sin(rot)*innerR); rot+=step;
+    }
+  } else if(type==='lightning'){
+    cctx.moveTo(cx-15,cy-70); cctx.lineTo(cx+20,cy-10); cctx.lineTo(cx-5,cy-10);
+    cctx.lineTo(cx+15,cy+70); cctx.lineTo(cx-25,cy+5); cctx.lineTo(cx+2,cy+5); cctx.closePath();
+  } else if(type==='robotface'){
+    cctx.rect(cx-55,cy-45,110,90);
+  } else {
+    cctx.moveTo(cx,cy-70); cctx.lineTo(cx+40,cy-10); cctx.lineTo(cx+22,cy+70);
+    cctx.lineTo(cx-22,cy+70); cctx.lineTo(cx-40,cy-10); cctx.closePath();
+  }
+  cctx.closePath(); cctx.fill(); cctx.stroke(); cctx.restore();
+}
+
+/* ============================= SCENE 6: HARDWARE ============================= */
+var STEPS = [
+  "Gather your components: battery, LED, resistor, wires, switch, breadboard.",
+  "Identify each part and say its name out loud.",
+  "Look at your blueprint design from the drawing mission.",
+  "Decide where your electrical path begins and ends.",
+  "Build your circuit on the breadboard using your plan.",
+  "Use the correct resistor with your LED.",
+  "Check the LED direction and battery polarity before powering up.",
+  "Predict: will your badge glow?",
+  "Power the circuit and observe!",
+  "Attach your decorated badge body without touching the connections."
+];
+function renderSteps(){
+  var list = document.getElementById('stepList');
+  list.innerHTML = '';
+  STEPS.forEach(function(s,i){
+    var item = document.createElement('div');
+    item.className = 'step-item'; item.tabIndex = 0; item.setAttribute('role','checkbox'); item.setAttribute('aria-checked','false');
+    item.innerHTML = '<span class="step-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0c2618" stroke-width="4" style="display:none"><path d="M4 12l5 5L20 6"/></svg></span><span class="step-text">'+s+'</span>';
+    function toggle(){
+      item.classList.toggle('done');
+      var checked = item.classList.contains('done');
+      item.setAttribute('aria-checked', checked);
+      item.querySelector('svg').style.display = checked ? '' : 'none';
+      sfxClick();
+    }
+    item.addEventListener('click', toggle);
+    item.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } });
+    list.appendChild(item);
+  });
+}
+renderSteps();
+
+var powerToggleEl = document.getElementById('powerToggle');
+function flipPower(){
+  var isOn = powerToggleEl.classList.toggle('on');
+  powerToggleEl.setAttribute('aria-checked', isOn);
+  var led = document.getElementById('ledDemo');
+  var status = document.getElementById('testStatus');
+  if(isOn){
+    led.classList.add('lit');
+    status.textContent = "It glows! Byte's heart is powered! ✨";
+    sfxSuccess();
+    setPowered(true);
+    if(!state.hardwareTested){
+      state.hardwareTested = true;
+      document.getElementById('hardwareContinueBtn').disabled = false;
+      awardXP(15,'Circuit works!');
+    }
+  } else {
+    led.classList.remove('lit');
+    status.textContent = "Flip the switch to power Byte's heart";
+  }
+}
+powerToggleEl.addEventListener('click', flipPower);
+powerToggleEl.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); flipPower(); } });
+document.getElementById('hardwareContinueBtn').addEventListener('click', function(){ goToScene(7); });
+
+/* ============================= SCENE 7: CHALLENGE ============================= */
+var REQS = [
+  {id:'circuit', text:'A working LED circuit', bonus:false},
+  {id:'resistor', text:'A safe current-limiting resistor', bonus:false},
+  {id:'path', text:'A complete electrical path', bonus:false},
+  {id:'design', text:'A creative badge design', bonus:false},
+  {id:'switch', text:'A switch to turn it on/off', bonus:true},
+  {id:'arrangement', text:'An original component arrangement', bonus:true}
+];
+function renderReqs(){
+  var list = document.getElementById('reqList');
+  list.innerHTML = '';
+  REQS.forEach(function(r){
+    var item = document.createElement('div');
+    item.className = 'req-item'+(r.bonus?' bonus':'');
+    item.tabIndex = 0; item.setAttribute('role','checkbox'); item.setAttribute('aria-checked','false');
+    item.innerHTML = '<span class="req-check"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0c2618" stroke-width="4" style="display:none"><path d="M4 12l5 5L20 6"/></svg></span><span class="req-text">'+r.text+'</span>'+(r.bonus?'<span class="req-tag">Bonus</span>':'');
+    function toggle(){
+      var wasDone = item.classList.contains('done');
+      item.classList.toggle('done');
+      var checked = item.classList.contains('done');
+      item.setAttribute('aria-checked', checked);
+      item.querySelector('svg').style.display = checked ? '' : 'none';
+      state.challengeChecks[r.id] = checked;
+      sfxClick();
+      if(checked && !wasDone && r.bonus){ awardXP(5,'Bonus points!'); }
+      checkChallengeComplete();
+    }
+    item.addEventListener('click', toggle);
+    item.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); toggle(); } });
+    list.appendChild(item);
+  });
+}
+var challengeCoreAwarded = false;
+function checkChallengeComplete(){
+  var core = REQS.filter(function(r){return !r.bonus;});
+  var allCore = core.every(function(r){ return state.challengeChecks[r.id]; });
+  document.getElementById('challengeContinueBtn').disabled = !allCore;
+  if(allCore && !challengeCoreAwarded){
+    challengeCoreAwarded = true;
+    burstConfetti(); sfxSuccess(); awardXP(20,'Challenge complete!');
+  }
+}
+renderReqs();
+document.getElementById('challengeContinueBtn').addEventListener('click', function(){ goToScene(8); });
+
+/* ============================= SCENE 8: REFLECTION ============================= */
+var REFLECT = [
+  "What makes your LED badge special?",
+  "What components did you use?",
+  "What job does each component do?",
+  "How does electricity travel through your design?",
+  "What did you test before your badge worked?",
+  "Did anything go wrong while building?",
+  "How did you solve the problem?",
+  "What part of your design are you most proud of?",
+  "If you could build Version 2, what would you change?"
+];
+var reflectAnswers = {};
+function renderReflect(){
+  document.getElementById('reflectQ').textContent = REFLECT[state.reflectIndex];
+  document.getElementById('reflectAnswer').value = reflectAnswers[state.reflectIndex] || '';
+  document.getElementById('reflectProgress').textContent = 'Q '+(state.reflectIndex+1)+' / '+REFLECT.length;
+  document.getElementById('reflectPrevBtn').disabled = state.reflectIndex===0;
+  document.getElementById('reflectNextBtn').textContent = state.reflectIndex===REFLECT.length-1 ? 'Finish Mission ▸' : 'Next ▸';
+}
+document.getElementById('reflectAnswer').addEventListener('input', function(){
+  reflectAnswers[state.reflectIndex] = this.value;
+});
+document.getElementById('reflectPrevBtn').addEventListener('click', function(){
+  sfxClick();
+  if(state.reflectIndex>0){ state.reflectIndex--; renderReflect(); }
+});
+document.getElementById('reflectNextBtn').addEventListener('click', function(){
+  sfxClick();
+  if(state.reflectIndex < REFLECT.length-1){ state.reflectIndex++; renderReflect(); }
+  else { goToScene(9); }
+});
+renderReflect();
+
+/* ============================= SCENE 9: CELEBRATION ============================= */
+document.getElementById('celebrateAgainBtn').addEventListener('click', function(){ burstConfetti(); sfxCelebrate(); });
+document.getElementById('certName').addEventListener('input', function(){
+  document.getElementById('certNameDisplay').textContent = this.value.trim() ? this.value : 'Secret Inventor';
+});
+document.getElementById('restartBtn').addEventListener('click', function(){
+  if(confirm('Restart the whole mission from the beginning?')){ window.location.reload(); }
+});
+
+/* ============================= INIT ============================= */
+buildProgressTrack();
+mountMascot('splashMascot', 160, false);
+mountMascot('storyMascotHolder', 150, false);
+mountMascot('miniMascotHolder', 56, false);
+mountMascot('celebrateMascotHolder', 130, true);
+goToScene(1);
+
+document.getElementById('startBtn').addEventListener('click', function(){
+  ensureAudio(); sfxSuccess();
+  document.getElementById('splash').classList.add('hide');
+});
+
+})();
+</script>
+</body>
+</html>

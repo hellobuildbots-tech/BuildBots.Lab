@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { CRMAppSidebar } from '@/components/CRMAppSidebar';
-import { Search, Filter, Play, CheckCircle2, Clock } from 'lucide-react';
+import { Search, Filter, Play, CheckCircle2, Clock, Lock } from 'lucide-react';
 
 export default function LessonLibraryPage() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -19,28 +19,43 @@ export default function LessonLibraryPage() {
       difficulty: 'Beginner',
       duration: '30 Mins',
       completed: true,
+      unlocked: true,
       path: '/lessons/month-1/class-1'
     },
     {
       id: 'class-2',
       month: 1,
       classNumber: 2,
-      title: 'Switches & Light Magic',
-      description: 'Wire SPST switches to control LED lights on and off with custom color triggers.',
+      title: 'Switches & Light Magic (The Cave of Lost Light)',
+      description: 'Wire SPST switches to control LED lights on and off with custom color triggers. (Partially unlocked for preview).',
       difficulty: 'Beginner',
       duration: '35 Mins',
       completed: false,
-      path: '#'
+      unlocked: true,
+      path: '/lessons/month-1/class-2'
     },
     {
       id: 'class-3',
       month: 1,
       classNumber: 3,
-      title: 'Ultrasonic Distance Sensors',
-      description: 'Teach Bolt to see distance using ultrasonic waves and detect obstacles.',
+      title: 'Save Robot City: Traffic Light Rescue',
+      description: 'Rebuild Robot City traffic signals with Red, Yellow & Green LEDs. (Requires teacher permission).',
       difficulty: 'Intermediate',
       duration: '40 Mins',
       completed: false,
+      unlocked: false,
+      path: '#'
+    },
+    {
+      id: 'class-4',
+      month: 1,
+      classNumber: 4,
+      title: 'The Glowing Power Core',
+      description: 'Assemble Byte glowing power core with resistors and breadboard circuits. (Requires teacher permission).',
+      difficulty: 'Advanced',
+      duration: '45 Mins',
+      completed: false,
+      unlocked: false,
       path: '#'
     }
   ];
@@ -80,7 +95,7 @@ export default function LessonLibraryPage() {
             <div className="flex items-center gap-2 w-full sm:w-auto">
               <Filter className="w-4 h-4 text-slate-500" />
               <span className="text-xs text-slate-400 font-bold uppercase">Difficulty:</span>
-              {['All', 'Beginner', 'Intermediate'].map(d => (
+              {['All', 'Beginner', 'Intermediate', 'Advanced'].map(d => (
                 <button
                   key={d}
                   onClick={() => setFilterDifficulty(d)}
@@ -97,7 +112,7 @@ export default function LessonLibraryPage() {
           {/* LESSON CARDS GRID */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredLessons.map(l => (
-              <div key={l.id} className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between">
+              <div key={l.id} className="p-6 rounded-3xl bg-slate-900/60 border border-slate-800 hover:border-cyan-500/40 transition-all flex flex-col justify-between relative overflow-hidden">
                 <div>
                   <div className="flex items-center justify-between gap-2 mb-4">
                     <span className="px-3 py-1 rounded-full bg-cyan-500/10 text-cyan-300 text-xs font-bold uppercase">
@@ -107,9 +122,13 @@ export default function LessonLibraryPage() {
                       <span className="flex items-center gap-1 text-xs text-emerald-400 font-bold">
                         <CheckCircle2 className="w-4 h-4" /> Completed
                       </span>
+                    ) : l.unlocked ? (
+                      <span className="flex items-center gap-1 text-xs text-yellow-400 font-bold">
+                        <Clock className="w-4 h-4" /> Available
+                      </span>
                     ) : (
                       <span className="flex items-center gap-1 text-xs text-slate-500 font-bold">
-                        <Clock className="w-4 h-4" /> {l.duration}
+                        <Lock className="w-4 h-4" /> Locked by Teacher
                       </span>
                     )}
                   </div>
@@ -119,14 +138,14 @@ export default function LessonLibraryPage() {
                 </div>
 
                 <Link
-                  href={l.path}
+                  href={l.unlocked ? l.path : '#'}
                   className={`w-full py-3 rounded-xl font-extrabold text-sm text-center flex items-center justify-center gap-2 transition-all ${
-                    l.path !== '#'
+                    l.unlocked
                       ? 'bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 hover:shadow-lg hover:shadow-cyan-500/25'
-                      : 'bg-slate-800 text-slate-500 cursor-not-allowed'
+                      : 'bg-slate-800/80 text-slate-500 cursor-not-allowed border border-slate-700/50'
                   }`}
                 >
-                  {l.path !== '#' ? <>Launch Lesson <Play className="w-4 h-4 fill-slate-950" /></> : 'Locked'}
+                  {l.unlocked ? <>Launch Lesson <Play className="w-4 h-4 fill-slate-950" /></> : <>Locked (Teacher Permission Required) <Lock className="w-4 h-4" /></>}
                 </Link>
               </div>
             ))}

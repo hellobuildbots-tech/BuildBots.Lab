@@ -1,0 +1,1349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>Save Robot City — Mission 3: The Traffic Light Rescue</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Quicksand:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ============================================================
+   BUILDBOTS AI — MISSION 3: THE TRAFFIC LIGHT RESCUE
+   Design system: "Neon Intersection"
+   ============================================================ */
+:root{
+  --navy-950:#0a0e27;
+  --navy-900:#0d1240;
+  --navy-800:#131a52;
+  --navy-700:#1b2468;
+  --glass:rgba(255,255,255,0.06);
+  --glass-brd:rgba(255,255,255,0.14);
+  --cyan:#4dd8ff;
+  --cyan-glow:#7ee8ff;
+  --violet:#b07bff;
+  --pink:#ff6ec9;
+  --red:#ff4d5e;
+  --red-dim:#7a2530;
+  --yellow:#ffcb3d;
+  --yellow-dim:#7a6420;
+  --green:#33e08a;
+  --green-dim:#1f6d47;
+  --white:#f4f7ff;
+  --ink-dim:#a6b0d8;
+  --font-display:'Baloo 2', 'Comic Sans MS', ui-rounded, system-ui, sans-serif;
+  --font-body:'Quicksand', system-ui, sans-serif;
+  --radius-lg:28px;
+  --radius-md:18px;
+  --radius-sm:12px;
+  --shadow-pop: 0 10px 0 rgba(0,0,0,0.25);
+}
+*{box-sizing:border-box;}
+html,body{height:100%;}
+body{
+  margin:0;
+  font-family:var(--font-body);
+  color:var(--white);
+  background:
+    radial-gradient(ellipse 80% 50% at 15% -10%, rgba(176,123,255,0.25), transparent 60%),
+    radial-gradient(ellipse 70% 50% at 100% 10%, rgba(77,216,255,0.18), transparent 55%),
+    radial-gradient(ellipse 60% 40% at 50% 110%, rgba(255,110,201,0.14), transparent 60%),
+    linear-gradient(180deg, var(--navy-950), var(--navy-900) 40%, var(--navy-950));
+  min-height:100vh;
+  overflow-x:hidden;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+:focus-visible{outline:3px solid var(--cyan-glow); outline-offset:3px; border-radius:8px;}
+
+/* ---------- background city skyline (fixed, decorative) ---------- */
+.skyline{position:fixed; inset:auto 0 0 0; height:38vh; pointer-events:none; z-index:0; opacity:0.55;}
+.skyline svg{width:100%;height:100%;display:block;}
+.stars{position:fixed; inset:0; z-index:0; pointer-events:none;}
+.star{position:absolute; width:3px; height:3px; background:#fff; border-radius:50%; opacity:0.5; animation:twinkle 3s ease-in-out infinite;}
+@keyframes twinkle{0%,100%{opacity:.15;} 50%{opacity:.8;}}
+
+/* ---------- app shell ---------- */
+#app{position:relative; z-index:1; max-width:920px; margin:0 auto; min-height:100vh; display:flex; flex-direction:column; padding:14px 16px 110px;}
+
+/* ---------- HUD ---------- */
+#hud{
+  position:sticky; top:0; z-index:50; display:flex; align-items:center; gap:12px;
+  background:rgba(10,14,39,0.72); backdrop-filter:blur(14px);
+  border:1px solid var(--glass-brd); border-radius:20px; padding:10px 14px; margin-bottom:16px;
+  box-shadow:0 8px 30px rgba(0,0,0,0.35);
+}
+.hud-mascot{width:38px !important; height:38px !important; min-width:38px; min-height:38px; flex-shrink:0;}
+.hud-track{flex:1; display:flex; gap:5px; align-items:center;}
+.hud-dot{
+  flex:1; height:9px; border-radius:6px; background:rgba(255,255,255,0.12);
+  position:relative; overflow:hidden; min-width:8px;
+}
+.hud-dot.done{background:linear-gradient(90deg,var(--green),#26c47a);}
+.hud-dot.current{background:rgba(255,255,255,0.18);}
+.hud-dot.current::after{
+  content:''; position:absolute; inset:0; background:linear-gradient(90deg,var(--cyan),var(--violet));
+  animation:pulseFill 1.6s ease-in-out infinite;
+}
+@keyframes pulseFill{0%,100%{opacity:.55;} 50%{opacity:1;}}
+.hud-xp{
+  display:flex; align-items:center; gap:6px; font-family:var(--font-display); font-weight:700;
+  background:linear-gradient(135deg,#ffcb3d,#ff9f45); color:#3a2100; padding:6px 12px; border-radius:999px;
+  font-size:14px; white-space:nowrap; box-shadow:0 3px 0 #b56d00;
+}
+#sound-toggle{
+  background:var(--glass); border:1px solid var(--glass-brd); width:36px; height:36px; border-radius:50%;
+  color:var(--white); font-size:16px; cursor:pointer; display:flex; align-items:center; justify-content:center;
+  flex-shrink:0;
+}
+#sound-toggle:hover{background:rgba(255,255,255,0.14);}
+
+/* ---------- scene container ---------- */
+#scene-wrap{flex:1; display:flex; flex-direction:column;}
+.scene{animation:sceneIn .5s cubic-bezier(.2,.9,.25,1); display:flex; flex-direction:column; gap:18px;}
+@keyframes sceneIn{from{opacity:0; transform:translateY(18px) scale(.985);} to{opacity:1; transform:none;}}
+@media (prefers-reduced-motion: reduce){
+  .scene{animation:none;}
+  *{animation-duration:.01ms !important; animation-iteration-count:1 !important; transition-duration:.01ms !important;}
+}
+
+.eyebrow{
+  font-family:var(--font-display); font-weight:700; letter-spacing:.06em; text-transform:uppercase;
+  font-size:12px; color:var(--cyan-glow); display:flex; align-items:center; gap:8px;
+}
+.eyebrow .dot{width:6px;height:6px;border-radius:50%;background:var(--cyan-glow); box-shadow:0 0 8px var(--cyan-glow);}
+h1.scene-title{
+  font-family:var(--font-display); font-weight:800; font-size:clamp(24px,5.5vw,38px); margin:2px 0 0;
+  line-height:1.05; background:linear-gradient(90deg,#fff,#cfe0ff); -webkit-background-clip:text; background-clip:text; color:transparent;
+}
+.scene-goal{color:var(--ink-dim); font-size:15px; max-width:60ch; margin:0;}
+
+/* ---------- glass card / panel ---------- */
+.panel{
+  background:var(--glass); border:1px solid var(--glass-brd); border-radius:var(--radius-lg);
+  padding:20px; backdrop-filter:blur(10px); position:relative; overflow:hidden;
+}
+.panel::before{content:''; position:absolute; inset:0; background:linear-gradient(160deg, rgba(255,255,255,0.08), transparent 40%); pointer-events:none;}
+
+/* ---------- speech bubble ---------- */
+.bubble-row{display:flex; align-items:flex-end; gap:12px;}
+.bubble{
+  position:relative; background:#fff; color:#1a1b3a; font-family:var(--font-display); font-weight:600;
+  border-radius:20px; padding:14px 18px; font-size:15.5px; line-height:1.35; max-width:440px;
+  box-shadow:0 8px 0 rgba(0,0,0,0.15);
+  min-height:1em;
+}
+.bubble::after{
+  content:''; position:absolute; left:-9px; bottom:14px; width:0; height:0;
+  border-top:9px solid transparent; border-bottom:9px solid transparent; border-right:12px solid #fff;
+}
+.bubble .cursor{display:inline-block; width:2px; height:1em; background:#1a1b3a; margin-left:2px; vertical-align:-2px; animation:blink 0.8s steps(1) infinite;}
+@keyframes blink{50%{opacity:0;}}
+
+/* ---------- buttons ---------- */
+.btn{
+  font-family:var(--font-display); font-weight:700; font-size:15px; border:none; border-radius:16px;
+  padding:13px 22px; cursor:pointer; color:#0a0e27; display:inline-flex; align-items:center; gap:8px;
+  transition:transform .12s ease, box-shadow .12s ease; box-shadow:var(--shadow-pop);
+}
+.btn:active{transform:translateY(6px); box-shadow:0 2px 0 rgba(0,0,0,0.25);}
+.btn:hover{transform:translateY(-2px);}
+.btn:active:hover{transform:translateY(6px);}
+.btn-primary{background:linear-gradient(135deg,var(--cyan),#3fa8ff); color:#04203a;}
+.btn-glow{background:linear-gradient(135deg,#ffcb3d,#ff9f45); color:#3a2100;}
+.btn-ghost{background:rgba(255,255,255,0.08); color:#fff; box-shadow:0 4px 0 rgba(0,0,0,0.2); border:1px solid var(--glass-brd);}
+.btn-green{background:linear-gradient(135deg,var(--green),#1ec97a); color:#04321c;}
+.btn:disabled{opacity:.4; cursor:not-allowed; transform:none;}
+.btn-sm{padding:9px 16px; font-size:13.5px; border-radius:12px;}
+
+/* ---------- nav bar (bottom) ---------- */
+#navbar{
+  position:fixed; left:0; right:0; bottom:0; z-index:60; display:flex; justify-content:center;
+  padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg, transparent, rgba(6,9,26,0.9) 30%);
+}
+#navbar .inner{
+  width:100%; max-width:920px; display:flex; align-items:center; justify-content:space-between; gap:10px;
+}
+
+/* ---------- Robot Byte mascot ---------- */
+.mascot{display:block; max-width:100%; max-height:100%; height:auto;}
+.bubble-row .mascot{width:64px; height:64px; flex-shrink:0;}
+.mascot .antenna-ball{animation:bob 2.4s ease-in-out infinite;}
+.mascot .eye{transform-origin:center;}
+@keyframes bob{0%,100%{transform:translateY(0);} 50%{transform:translateY(-4px);}}
+.mascot-float{animation:floaty 3.2s ease-in-out infinite;}
+@keyframes floaty{0%,100%{transform:translateY(0) rotate(-1deg);} 50%{transform:translateY(-8px) rotate(1deg);}}
+
+/* ---------- generic grids ---------- */
+.grid-3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px;}
+.grid-2{display:grid; grid-template-columns:repeat(2,1fr); gap:12px;}
+@media (max-width:560px){.grid-3{grid-template-columns:1fr;} }
+
+/* ---------- traffic light widget ---------- */
+.tl-housing{
+  background:#20233d; border-radius:22px; padding:16px 14px; display:flex; flex-direction:column; gap:12px;
+  width:96px; margin:0 auto; box-shadow:inset 0 0 0 3px rgba(255,255,255,0.06), 0 10px 20px rgba(0,0,0,0.35);
+}
+.tl-lamp{
+  width:64px; height:64px; border-radius:50%; margin:0 auto; background:#171a30;
+  display:flex; align-items:center; justify-content:center; position:relative; transition:all .25s ease;
+  border:3px solid rgba(255,255,255,0.05);
+}
+.tl-lamp.on-red{background:radial-gradient(circle at 40% 35%, #ff8f97, var(--red)); box-shadow:0 0 26px 8px rgba(255,77,94,0.75);}
+.tl-lamp.on-yellow{background:radial-gradient(circle at 40% 35%, #ffe08a, var(--yellow)); box-shadow:0 0 26px 8px rgba(255,203,61,0.75);}
+.tl-lamp.on-green{background:radial-gradient(circle at 40% 35%, #86ffc5, var(--green)); box-shadow:0 0 26px 8px rgba(51,224,138,0.75);}
+
+/* color pick buttons (STOP/WAIT/GO) */
+.color-btn{
+  border:none; border-radius:20px; padding:18px 10px; font-family:var(--font-display); font-weight:800;
+  font-size:15px; color:#fff; cursor:pointer; display:flex; flex-direction:column; align-items:center; gap:8px;
+  box-shadow:var(--shadow-pop); transition:transform .12s;
+}
+.color-btn:active{transform:translateY(6px); box-shadow:0 2px 0 rgba(0,0,0,0.3);}
+.color-btn .swatch{width:34px;height:34px;border-radius:50%; box-shadow:inset 0 -4px 6px rgba(0,0,0,0.25), 0 0 14px currentColor;}
+.color-btn.red{background:linear-gradient(160deg,#ff6b78,var(--red)); box-shadow:0 8px 0 var(--red-dim);}
+.color-btn.red:active{box-shadow:0 2px 0 var(--red-dim);}
+.color-btn.yellow{background:linear-gradient(160deg,#ffe08a,var(--yellow)); color:#3a2900; box-shadow:0 8px 0 var(--yellow-dim);}
+.color-btn.yellow:active{box-shadow:0 2px 0 var(--yellow-dim);}
+.color-btn.green{background:linear-gradient(160deg,#7dffc0,var(--green)); box-shadow:0 8px 0 var(--green-dim);}
+.color-btn.green:active{box-shadow:0 2px 0 var(--green-dim);}
+.color-btn.wrong{animation:shake .4s;}
+@keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-8px);}40%{transform:translateX(8px);}60%{transform:translateX(-6px);}80%{transform:translateX(6px);}}
+.color-btn.correct-flash{animation:flashGood .5s;}
+@keyframes flashGood{0%{box-shadow:0 0 0 0 #fff;} 50%{box-shadow:0 0 0 10px rgba(255,255,255,0);}}
+
+/* road / robots for story + game scenes */
+.road-scene{
+  position:relative; height:180px; border-radius:20px; overflow:hidden;
+  background:linear-gradient(180deg,#232a52,#171b39);
+}
+.road-scene svg{position:absolute; inset:0; width:100%; height:100%;}
+.robot-chip{
+  position:absolute; width:34px; height:34px; border-radius:10px; display:flex; align-items:center; justify-content:center;
+  font-size:18px; box-shadow:0 4px 10px rgba(0,0,0,.4); transition:left 1s ease, top 1s ease, transform .3s;
+}
+.robot-chip.bump{animation:bump .5s;}
+@keyframes bump{0%,100%{transform:translateX(0) rotate(0);}25%{transform:translateX(-4px) rotate(-6deg);}75%{transform:translateX(4px) rotate(6deg);}}
+.robot-chip.frozen{filter:saturate(.3);}
+.robot-chip.slow{animation:wiggle 1.2s ease-in-out infinite;}
+@keyframes wiggle{0%,100%{transform:translateX(0);}50%{transform:translateX(3px);}}
+
+/* flip cards (discussion) */
+.flip-card{perspective:1000px; height:150px; cursor:pointer;}
+.flip-inner{position:relative; width:100%; height:100%; transition:transform .6s; transform-style:preserve-3d;}
+.flip-card.flipped .flip-inner{transform:rotateY(180deg);}
+.flip-face{
+  position:absolute; inset:0; border-radius:18px; backface-visibility:hidden; padding:16px;
+  display:flex; align-items:center; justify-content:center; text-align:center; font-family:var(--font-display); font-weight:700; font-size:14.5px;
+}
+.flip-front{background:linear-gradient(150deg,var(--navy-700),var(--navy-800)); border:1px solid var(--glass-brd); color:var(--cyan-glow);}
+.flip-back{background:linear-gradient(150deg,#2b3a8f,#1c2568); transform:rotateY(180deg); color:#fff; font-weight:600; font-size:13.5px;}
+
+/* theory concept carousel */
+.concept-card{min-height:180px; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:14px; text-align:center;}
+.concept-icon{font-size:46px;}
+.concept-text{font-family:var(--font-display); font-weight:700; font-size:17px; max-width:36ch; line-height:1.3;}
+.carousel-dots{display:flex; gap:6px; justify-content:center;}
+.carousel-dots span{width:8px;height:8px;border-radius:50%; background:rgba(255,255,255,0.2);}
+.carousel-dots span.active{background:var(--cyan-glow); box-shadow:0 0 8px var(--cyan-glow);}
+
+/* drawing */
+#draw-canvas{width:100%; aspect-ratio:4/3; background:#0f1330; border-radius:18px; border:1px solid var(--glass-brd); touch-action:none; display:block; cursor:crosshair;}
+.palette{display:flex; gap:10px; flex-wrap:wrap; align-items:center;}
+.swatch-btn{width:38px; height:38px; border-radius:50%; border:3px solid rgba(255,255,255,0.25); cursor:pointer; padding:0;}
+.swatch-btn.active{border-color:#fff; transform:scale(1.15); box-shadow:0 0 0 3px rgba(255,255,255,0.25);}
+
+/* hardware: circuit builder */
+.breadboard{background:#152047; border-radius:20px; padding:20px; position:relative; border:1px solid var(--glass-brd);}
+.led-slot{display:flex; flex-direction:column; align-items:center; gap:8px;}
+.led-bulb{
+  width:56px; height:56px; border-radius:50% 50% 8px 8px / 60% 60% 8px 8px; background:#2a2f52; cursor:pointer;
+  display:flex; align-items:center; justify-content:center; transition:all .2s; border:2px solid rgba(255,255,255,0.08);
+  position:relative;
+}
+.led-bulb.lit-red{background:radial-gradient(circle at 35% 30%,#ffb0b8,var(--red)); box-shadow:0 0 24px 6px rgba(255,77,94,.8);}
+.led-bulb.lit-yellow{background:radial-gradient(circle at 35% 30%,#fff0b0,var(--yellow)); box-shadow:0 0 24px 6px rgba(255,203,61,.8);}
+.led-bulb.lit-green{background:radial-gradient(circle at 35% 30%,#b0ffd6,var(--green)); box-shadow:0 0 24px 6px rgba(51,224,138,.8);}
+.wire{width:4px; height:34px; background:#525b8f; margin:0 auto; border-radius:2px;}
+.wire.broken{background:repeating-linear-gradient(180deg,#ff4d5e 0 5px, transparent 5px 10px); animation:none; position:relative;}
+.wire.broken::after{content:'✕'; position:absolute; left:50%; top:50%; transform:translate(-50%,-50%); color:var(--red); font-weight:900; font-size:14px;}
+.wire.fixed-flash{animation:flashGood .6s;}
+.led-label{font-family:var(--font-display); font-weight:700; font-size:12px; color:var(--ink-dim);}
+
+/* mystery/debug banner */
+.callout{
+  display:flex; gap:10px; align-items:flex-start; background:rgba(255,203,61,0.1); border:1px solid rgba(255,203,61,0.35);
+  border-radius:16px; padding:12px 14px; font-size:14px; color:#ffe6a8;
+}
+
+/* quiz */
+.quiz-option{
+  width:100%; text-align:left; background:var(--glass); border:1px solid var(--glass-brd); color:#fff; border-radius:14px;
+  padding:13px 16px; font-family:var(--font-body); font-weight:600; font-size:14.5px; cursor:pointer; transition:all .15s;
+  display:flex; align-items:center; gap:10px;
+}
+.quiz-option:hover{background:rgba(255,255,255,0.12);}
+.quiz-option.correct{background:rgba(51,224,138,0.25); border-color:var(--green);}
+.quiz-option.incorrect{background:rgba(255,77,94,0.22); border-color:var(--red);}
+.quiz-option:disabled{cursor:default;}
+
+/* badge / celebration */
+.badge-medal{
+  width:130px; height:130px; margin:0 auto; border-radius:50%;
+  background:conic-gradient(from 180deg, #ffcb3d, #ff9f45, #ffcb3d);
+  display:flex; align-items:center; justify-content:center; font-size:56px;
+  box-shadow:0 0 0 8px rgba(255,203,61,0.15), 0 12px 30px rgba(255,155,20,0.4);
+  animation:medalPop .6s cubic-bezier(.2,1.4,.4,1);
+}
+@keyframes medalPop{0%{transform:scale(0) rotate(-30deg);} 70%{transform:scale(1.15) rotate(8deg);} 100%{transform:scale(1) rotate(0);}}
+canvas#confetti-canvas{position:fixed; inset:0; z-index:200; pointer-events:none;}
+
+.certificate{
+  border:3px dashed rgba(255,255,255,0.35); border-radius:22px; padding:24px; text-align:center;
+  background:linear-gradient(160deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02));
+}
+.certificate .name-line{
+  font-family:var(--font-display); font-size:22px; font-weight:800; color:var(--cyan-glow);
+  border-bottom:2px solid var(--glass-brd); display:inline-block; padding:4px 20px; margin:8px 0;
+}
+input.name-input{
+  background:transparent; border:none; border-bottom:2px solid var(--cyan-glow); text-align:center; color:#fff;
+  font-family:var(--font-display); font-size:20px; font-weight:700; padding:4px 8px; width:220px; max-width:70vw;
+}
+input.name-input::placeholder{color:rgba(255,255,255,0.4);}
+
+/* homework card */
+.homework-card{background:linear-gradient(160deg,#2b2560,#171a3d); border:1px solid var(--glass-brd); border-radius:24px; padding:22px; position:relative; overflow:hidden;}
+.homework-tag{position:absolute; top:16px; right:-34px; background:var(--pink); color:#3a0022; font-family:var(--font-display); font-weight:800; font-size:12px; padding:5px 40px; transform:rotate(35deg); box-shadow:0 3px 8px rgba(0,0,0,.3);}
+
+/* mini objective chip */
+.obj-chip{display:inline-flex; align-items:center; gap:6px; background:rgba(77,216,255,0.12); border:1px solid rgba(77,216,255,0.3); color:var(--cyan-glow); font-size:12.5px; font-weight:700; padding:6px 12px; border-radius:999px;}
+
+/* signal creator */
+.signal-picker{display:flex; gap:10px; flex-wrap:wrap;}
+.signal-swatch{width:44px;height:44px;border-radius:12px; cursor:pointer; border:3px solid transparent;}
+.signal-swatch.active{border-color:#fff; transform:scale(1.08);}
+.custom-card{background:var(--glass); border:1px solid var(--glass-brd); border-radius:16px; padding:14px; display:flex; gap:12px; align-items:center;}
+.custom-card .cs-dot{width:34px;height:34px;border-radius:50%; flex-shrink:0; box-shadow:0 0 12px currentColor;}
+
+/* live region */
+#announcer{position:absolute; width:1px;height:1px; overflow:hidden;}
+
+/* toast */
+#toast{
+  position:fixed; left:50%; top:18px; transform:translate(-50%,-140%); z-index:300;
+  background:#fff; color:#1a1b3a; font-family:var(--font-display); font-weight:700; font-size:14px;
+  padding:10px 18px; border-radius:14px; box-shadow:0 10px 24px rgba(0,0,0,.35); transition:transform .35s cubic-bezier(.2,1,.3,1);
+  display:flex; align-items:center; gap:8px;
+}
+#toast.show{transform:translate(-50%,0);}
+</style>
+</head>
+<body>
+
+<div class="stars" id="stars" aria-hidden="true"></div>
+<div class="skyline" aria-hidden="true">
+  <svg viewBox="0 0 800 200" preserveAspectRatio="none">
+    <rect x="0" y="90" width="60" height="110" fill="#171b3d"/>
+    <rect x="70" y="60" width="45" height="140" fill="#1b2050"/>
+    <rect x="125" y="110" width="70" height="90" fill="#171b3d"/>
+    <rect x="205" y="40" width="50" height="160" fill="#1e2456"/>
+    <rect x="265" y="85" width="60" height="115" fill="#171b3d"/>
+    <rect x="335" y="20" width="55" height="180" fill="#232a5e"/>
+    <rect x="400" y="95" width="65" height="105" fill="#171b3d"/>
+    <rect x="475" y="55" width="48" height="145" fill="#1b2050"/>
+    <rect x="533" y="100" width="70" height="100" fill="#171b3d"/>
+    <rect x="613" y="30" width="52" height="170" fill="#1e2456"/>
+    <rect x="675" y="80" width="60" height="120" fill="#171b3d"/>
+    <rect x="745" y="115" width="55" height="85" fill="#1b2050"/>
+    <g fill="#4dd8ff" opacity="0.55">
+      <rect x="10" y="105" width="6" height="6"/><rect x="25" y="120" width="6" height="6"/><rect x="40" y="105" width="6" height="6"/>
+      <rect x="85" y="75" width="6" height="6"/><rect x="95" y="95" width="6" height="6"/>
+      <rect x="220" y="60" width="6" height="6"/><rect x="235" y="80" width="6" height="6"/>
+      <rect x="350" y="40" width="6" height="6"/><rect x="365" y="65" width="6" height="6"/><rect x="350" y="90" width="6" height="6"/>
+      <rect x="490" y="75" width="6" height="6"/><rect x="500" y="100" width="6" height="6"/>
+      <rect x="628" y="55" width="6" height="6"/><rect x="645" y="80" width="6" height="6"/>
+      <rect x="690" y="100" width="6" height="6"/><rect x="705" y="120" width="6" height="6"/>
+    </g>
+  </svg>
+</div>
+
+<canvas id="confetti-canvas" aria-hidden="true"></canvas>
+<div id="toast" role="status" aria-live="polite"></div>
+<div id="announcer" aria-live="polite"></div>
+
+<div id="app">
+  <div id="hud">
+    <svg class="hud-mascot" viewBox="0 0 100 100" aria-hidden="true" id="hud-mascot-svg"></svg>
+    <div class="hud-track" id="hud-track" role="progressbar" aria-label="Mission progress"></div>
+    <div class="hud-xp" id="hud-xp">⚡ <span id="xp-val">0</span> XP</div>
+    <button id="sound-toggle" aria-pressed="true" aria-label="Toggle sound effects">🔊</button>
+  </div>
+
+  <div id="scene-wrap">
+    <main class="scene" id="scene" aria-live="polite"></main>
+  </div>
+</div>
+
+<div id="navbar">
+  <div class="inner">
+    <button class="btn btn-ghost btn-sm" id="prevBtn">← Back</button>
+    <div id="navCenter" style="flex:1; display:flex; justify-content:center; gap:8px;"></div>
+    <button class="btn btn-primary" id="nextBtn">Continue →</button>
+  </div>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ============================================================
+   AUDIO — tiny WebAudio synth, no external files
+   ============================================================ */
+let actx=null, soundOn=true;
+function ensureAudio(){
+  if(!actx){ try{ actx = new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} }
+  if(actx && actx.state === 'suspended'){ actx.resume(); }
+  return actx;
+}
+function tone(freq,dur,type,vol,delay){
+  if(!soundOn) return;
+  const ctx=ensureAudio(); if(!ctx) return;
+  const t0=ctx.currentTime+(delay||0);
+  const osc=ctx.createOscillator(), gain=ctx.createGain();
+  osc.type=type||'sine'; osc.frequency.setValueAtTime(freq,t0);
+  gain.gain.setValueAtTime(0,t0);
+  gain.gain.linearRampToValueAtTime(vol||0.14,t0+0.02);
+  gain.gain.exponentialRampToValueAtTime(0.0001,t0+dur);
+  osc.connect(gain); gain.connect(ctx.destination);
+  osc.start(t0); osc.stop(t0+dur+0.02);
+}
+const sfx={
+  click:()=>tone(520,.09,'triangle',.12),
+  pop:()=>{tone(660,.08,'square',.08); tone(880,.09,'square',.06,.04);},
+  success:()=>{tone(523,.12,'sine',.16); tone(659,.12,'sine',.14,.1); tone(784,.18,'sine',.16,.2);},
+  error:()=>{tone(220,.16,'sawtooth',.12); tone(160,.2,'sawtooth',.1,.08);},
+  whoosh:()=>tone(200,.25,'sine',.06),
+  fanfare:()=>{[523,659,784,1046].forEach((f,i)=>tone(f,.22,'triangle',.15,i*0.11));}
+};
+document.getElementById('sound-toggle').addEventListener('click',function(){
+  soundOn=!soundOn;
+  this.textContent = soundOn?'🔊':'🔇';
+  this.setAttribute('aria-pressed', soundOn?'true':'false');
+  if(soundOn) sfx.click();
+});
+
+/* ============================================================
+   ROBOT BYTE — mascot SVG, mood-based face
+   ============================================================ */
+function mascotSVG(mood, opts){
+  mood = mood||'happy';
+  opts = opts||{};
+  const eyeColor = '#4dd8ff';
+  let mouth, eyeShape='circle';
+  switch(mood){
+    case 'happy': mouth='<path d="M38 66 Q50 76 62 66" stroke="#0a0e27" stroke-width="4" fill="none" stroke-linecap="round"/>'; break;
+    case 'worried': mouth='<path d="M38 70 Q50 62 62 70" stroke="#0a0e27" stroke-width="4" fill="none" stroke-linecap="round"/>'; break;
+    case 'surprised': mouth='<circle cx="50" cy="68" r="6" fill="#0a0e27"/>'; break;
+    case 'thinking': mouth='<path d="M40 68 Q50 68 60 64" stroke="#0a0e27" stroke-width="4" fill="none" stroke-linecap="round"/>'; break;
+    case 'proud': mouth='<path d="M36 64 Q50 80 64 64" stroke="#0a0e27" stroke-width="4" fill="none" stroke-linecap="round"/>'; break;
+    default: mouth='<path d="M38 66 Q50 76 62 66" stroke="#0a0e27" stroke-width="4" fill="none" stroke-linecap="round"/>';
+  }
+  const eyes = mood==='surprised'
+    ? '<circle class="eye" cx="38" cy="52" r="7" fill="'+eyeColor+'"/><circle class="eye" cx="62" cy="52" r="7" fill="'+eyeColor+'"/>'
+    : '<ellipse class="eye" cx="38" cy="52" rx="6" ry="7" fill="'+eyeColor+'"/><ellipse class="eye" cx="62" cy="52" rx="6" ry="7" fill="'+eyeColor+'"/>';
+  return (
+  '<svg viewBox="0 0 100 100" style="width:100%; height:100%; max-width:100%; max-height:100%; display:block;" class="mascot'+(opts.float?' mascot-float':'')+'" role="img" aria-label="Robot Byte, the friendly city robot, looking '+mood+'">'+
+    '<circle cx="50" cy="15" r="4" fill="#ffcb3d" class="antenna-ball"/>'+
+    '<rect x="48" y="16" width="4" height="14" fill="#5a6199" rx="2"/>'+
+    '<rect x="18" y="30" width="64" height="52" rx="20" fill="#232a5e" stroke="#3a4390" stroke-width="2"/>'+
+    '<rect x="26" y="38" width="48" height="34" rx="14" fill="#0d1030"/>'+
+    eyes+
+    mouth+
+    '<rect x="8" y="46" width="8" height="18" rx="4" fill="#3a4390"/>'+
+    '<rect x="84" y="46" width="8" height="18" rx="4" fill="#3a4390"/>'+
+    '<rect x="30" y="84" width="16" height="10" rx="3" fill="#3a4390"/>'+
+    '<rect x="54" y="84" width="16" height="10" rx="3" fill="#3a4390"/>'+
+  '</svg>');
+}
+(function initHudMascot(){
+  var hudSvg = document.getElementById('hud-mascot-svg');
+  if(hudSvg){
+    hudSvg.setAttribute('viewBox', '0 0 100 100');
+    hudSvg.innerHTML = '<circle cx="50" cy="15" r="4" fill="#ffcb3d" class="antenna-ball"/>'+
+      '<rect x="48" y="16" width="4" height="14" fill="#5a6199" rx="2"/>'+
+      '<rect x="18" y="30" width="64" height="52" rx="20" fill="#232a5e" stroke="#3a4390" stroke-width="2"/>'+
+      '<rect x="26" y="38" width="48" height="34" rx="14" fill="#0d1030"/>'+
+      '<ellipse class="eye" cx="38" cy="52" rx="6" ry="7" fill="#4dd8ff"/><ellipse class="eye" cx="62" cy="52" rx="6" ry="7" fill="#4dd8ff"/>'+
+      '<path d="M38 66 Q50 76 62 66" stroke="#0a0e27" stroke-width="4" fill="none" stroke-linecap="round"/>'+
+      '<rect x="8" y="46" width="8" height="18" rx="4" fill="#3a4390"/>'+
+      '<rect x="84" y="46" width="8" height="18" rx="4" fill="#3a4390"/>'+
+      '<rect x="30" y="84" width="16" height="10" rx="3" fill="#3a4390"/>'+
+      '<rect x="54" y="84" width="16" height="10" rx="3" fill="#3a4390"/>';
+  }
+})();
+
+/* ============================================================
+   STATE
+   ============================================================ */
+const state = {
+  scene:0,
+  xp:0,
+  flippedCount:0,
+  theoryIdx:0,
+  quizScore:0,
+  quizAnswered:{},
+  drawnStrokes:false,
+  hwLit:{red:false,yellow:false,green:false},
+  hwBroken:true,
+  hwFixed:false,
+  seqProgress:0,
+  seqTarget:['red','green','yellow','red'],
+  challengeSeqProgress:0,
+  customSignal:{color:null,text:''}
+};
+
+const SCENES = [
+  {key:'portal', label:'Mission Start'},
+  {key:'story', label:'Story'},
+  {key:'game', label:'Traffic Controller'},
+  {key:'discussion', label:'Discussion'},
+  {key:'theory', label:'Theory'},
+  {key:'drawing', label:'Blueprint'},
+  {key:'hardware', label:'Build It'},
+  {key:'challenge', label:'Emergency!'},
+  {key:'reflection', label:'Reflect'},
+  {key:'celebration', label:'Celebrate'},
+  {key:'homework', label:'Homework'}
+];
+
+function addXP(n){
+  state.xp += n;
+  document.getElementById('xp-val').textContent = state.xp;
+  const chip=document.getElementById('hud-xp');
+  chip.style.transform='scale(1.18)';
+  setTimeout(()=>chip.style.transform='scale(1)',180);
+}
+function announce(msg){ document.getElementById('announcer').textContent = msg; }
+function toast(msg, emoji){
+  const t=document.getElementById('toast');
+  t.innerHTML = (emoji||'✨')+' <span>'+msg+'</span>';
+  t.classList.add('show');
+  clearTimeout(toast._t);
+  toast._t=setTimeout(()=>t.classList.remove('show'),1800);
+}
+
+/* ============================================================
+   NAV / HUD RENDER
+   ============================================================ */
+function renderHud(){
+  const track=document.getElementById('hud-track');
+  track.innerHTML='';
+  SCENES.forEach((s,i)=>{
+    const d=document.createElement('div');
+    d.className='hud-dot'+(i<state.scene?' done':(i===state.scene?' current':''));
+    d.title=s.label;
+    track.appendChild(d);
+  });
+  track.setAttribute('aria-valuenow', state.scene+1);
+  track.setAttribute('aria-valuemin','1');
+  track.setAttribute('aria-valuemax', SCENES.length);
+}
+function updateNav(){
+  document.getElementById('prevBtn').style.visibility = state.scene===0?'hidden':'visible';
+  const nextBtn=document.getElementById('nextBtn');
+  if(state.scene===SCENES.length-1){ nextBtn.textContent='Finish 🎉'; }
+  else { nextBtn.textContent='Continue →'; }
+}
+document.getElementById('prevBtn').addEventListener('click',()=>{ sfx.click(); goto(state.scene-1); });
+document.getElementById('nextBtn').addEventListener('click',()=>{
+  sfx.click();
+  if(state.scene===SCENES.length-1){ toast('Robot City thanks you, Inventor!','🤖'); return; }
+  goto(state.scene+1);
+});
+
+function goto(i){
+  if(i<0||i>=SCENES.length) return;
+  state.scene=i;
+  renderHud();
+  updateNav();
+  render();
+  window.scrollTo({top:0,behavior:'smooth'});
+  announce('Scene: '+SCENES[i].label);
+}
+
+/* ============================================================
+   RENDER DISPATCH
+   ============================================================ */
+const sceneEl = document.getElementById('scene');
+function render(){
+  const key=SCENES[state.scene].key;
+  sceneEl.style.animation='none'; void sceneEl.offsetWidth; sceneEl.style.animation='';
+  const fn = renderers[key];
+  sceneEl.innerHTML = fn.render();
+  if(fn.init) fn.init();
+  document.getElementById('navCenter').innerHTML = fn.navCenter ? fn.navCenter() : '';
+  if(fn.bindNavCenter) fn.bindNavCenter();
+}
+
+function objChip(text){ return '<span class="obj-chip">🎯 '+text+'</span>'; }
+function header(eyebrowTxt, title, goal){
+  return '<div class="eyebrow"><span class="dot"></span>'+eyebrowTxt+'</div>'+
+         '<h1 class="scene-title">'+title+'</h1>'+
+         (goal?'<p class="scene-goal">'+goal+'</p>':'');
+}
+function mascotBubbleRow(mood, text, opts){
+  return '<div class="bubble-row">'+
+    '<div style="width:54px; height:54px; flex-shrink:0;">'+mascotSVG(mood,opts)+'</div>'+
+    '<div class="bubble">'+text+'</div>'+
+  '</div>';
+}
+
+/* ============================================================
+   SCENE 0 — MISSION PORTAL
+   ============================================================ */
+renderers = {};
+var renderers = {
+  portal:{
+    render(){
+      return (
+      '<div class="panel" style="text-align:center; padding:32px 20px;">'+
+        '<div class="eyebrow" style="justify-content:center;"><span class="dot"></span>Save Robot City</div>'+
+        '<h1 class="scene-title" style="margin-top:6px;">Mission 3<br>The Traffic Light Rescue</h1>'+
+        '<div style="width:110px; height:110px; margin:14px auto 6px; filter:drop-shadow(0 0 20px rgba(77,216,255,.45)); display:flex; align-items:center; justify-content:center;">'+mascotSVG('worried',{float:true})+'</div>'+
+        '<div class="bubble" style="margin:14px auto 0; max-width:420px; text-align:left;" id="portal-bubble">Loading transmission'+'<span class="cursor"></span></div>'+
+        '<div style="margin-top:22px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">'+
+          objChip('Fix the traffic light')+objChip('Learn STOP · WAIT · GO')+objChip('Debug the circuit')+
+        '</div>'+
+        '<button class="btn btn-glow" id="startBtn" style="margin-top:26px; font-size:17px; padding:16px 32px;">Start Mission 🚀</button>'+
+      '</div>');
+    },
+    init(){
+      typeInto(document.getElementById('portal-bubble'), "Emergency! Robot City's traffic signals have crashed and robots are bumping into each other everywhere!", 24, function(){
+        document.getElementById('portal-bubble').innerHTML='Emergency! Robot City\'s traffic signals have crashed and robots are bumping into each other everywhere!';
+      });
+      document.getElementById('startBtn').addEventListener('click',()=>{ sfx.pop(); goto(1); });
+    }
+  },
+
+/* ============================================================
+   SCENE 1 — STORY
+   ============================================================ */
+  story:{
+    render(){
+      return (
+        header('Chapter 1 · Story','Robot City Has Gone CRAZY!','Watch what happens when signals stop working.')+
+        '<div class="panel">'+
+          '<div class="road-scene" id="road-scene" aria-hidden="true">'+roadSVG()+
+            robotChip('r1','🚕','20%','60%')+
+            robotChip('r2','🚚','70%','30%')+
+            robotChip('r3','🤖','45%','75%')+
+          '</div>'+
+        '</div>'+
+        '<div class="panel" id="story-bubble-panel">'+ mascotBubbleRow('worried', '<span id="story-line"></span><span class="cursor"></span>') +'</div>'
+      );
+    },
+    init(){
+      const r1=document.getElementById('r1'), r2=document.getElementById('r2');
+      setTimeout(()=>{ r1.style.left='48%'; r1.style.top='45%'; },600);
+      setTimeout(()=>{ r2.style.left='50%'; r2.style.top='48%'; },1600);
+      setTimeout(()=>{ [r1,r2].forEach(el=>el.classList.add('bump')); sfx.error(); },2650);
+
+      const lines = [
+        "Oh no! The traffic signals crashed!",
+        "Look — the robots don't know when to STOP, WAIT, or GO!",
+        "They keep bumping into each other at the intersection!",
+        "I need a Secret Inventor to rebuild the traffic light. Can you save Robot City?"
+      ];
+      let li=0;
+      const target=document.getElementById('story-line');
+      function nextLine(){
+        if(li>=lines.length) return;
+        typeInto(target, lines[li], 22, ()=>{
+          li++;
+          if(li<lines.length) setTimeout(nextLine, 900);
+        });
+      }
+      setTimeout(nextLine, 500);
+    },
+    navCenter(){ return ''; }
+  },
+
+/* ============================================================
+   SCENE 2 — GAME: ROBOT TRAFFIC CONTROLLER
+   ============================================================ */
+  game:{
+    render(){
+      return (
+        header('Chapter 2 · Game','Robot Traffic Controller','Tap a light and watch how the robots react. Then try the full signal sequence!')+
+        '<div class="panel">'+
+          '<div class="road-scene" id="game-road">'+roadSVG()+
+            robotChip('g1','🚗','18%','30%')+
+            robotChip('g2','🚙','18%','58%')+
+            robotChip('g3','🛵','18%','82%')+
+          '</div>'+
+          '<div class="grid-3" style="margin-top:14px;">'+
+            colorBtn('red','STOP','🛑')+colorBtn('yellow','WAIT','⚠️')+colorBtn('green','GO','✅')+
+          '</div>'+
+        '</div>'+
+        '<div class="panel">'+
+          mascotBubbleRow('thinking','Now the real challenge — can you repeat the correct signal order? Watch closely!')+
+          '<div style="display:flex; align-items:center; gap:22px; flex-wrap:wrap; justify-content:center; margin-top:14px;">'+
+            trafficLightHousing('seq')+
+            '<div style="display:flex; flex-direction:column; gap:10px; align-items:center;">'+
+              '<button class="btn btn-ghost btn-sm" id="watchSeqBtn">▶️ Watch the sequence</button>'+
+              '<div id="seqButtons" class="grid-3" style="gap:8px;">'+
+                miniColorBtn('red')+miniColorBtn('yellow')+miniColorBtn('green')+
+              '</div>'+
+              '<div id="seqStatus" style="font-size:13px;color:var(--ink-dim);" aria-live="polite">Sequence: RED → GREEN → YELLOW → RED</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'
+      );
+    },
+    init(){
+      ['red','yellow','green'].forEach(c=>{
+        document.getElementById('cbtn-'+c).addEventListener('click',()=>reactRobots(c));
+      });
+      document.getElementById('watchSeqBtn').addEventListener('click',playSeqDemo);
+      state.seqProgress=0;
+      ['red','yellow','green'].forEach(c=>{
+        document.getElementById('mcbtn-'+c).addEventListener('click',()=>seqInput(c));
+      });
+      setTimeout(playSeqDemo, 500);
+    }
+  },
+
+/* ============================================================
+   SCENE 3 — DISCUSSION (flip cards)
+   ============================================================ */
+  discussion:{
+    render(){
+      const qs=[
+        {q:"Why did the robots keep bumping?", a:"They didn't know when to stop or go — the signals were broken!"},
+        {q:"What does a RED light tell a robot?", a:"STOP right there, friend!"},
+        {q:"What does GREEN mean?", a:"GO! The path is clear."},
+        {q:"Why can't all three lights mean GO?", a:"Robots would crash — someone always needs to stop!"},
+        {q:"Why does the ORDER of lights matter?", a:"The order gives clear, predictable instructions every time."},
+        {q:"What should we do when something breaks?", a:"Find the problem, test it, then fix it — like a real inventor!"}
+      ];
+      state.flippedCount=0;
+      return (
+        header('Chapter 3 · Discussion','Talk It Out with Robot Byte','Tap each card to flip it and reveal the answer.')+
+        '<div class="panel">'+ mascotBubbleRow('thinking','Flip every card — I want to hear what you think first, then check my answer!') +'</div>'+
+        '<div class="grid-3" id="flip-grid">'+
+          qs.map((item,i)=>flipCard(i,item.q,item.a)).join('')+
+        '</div>'+
+        '<p style="text-align:center; color:var(--ink-dim); font-size:13px;" id="flip-progress">0 / '+qs.length+' explored</p>'
+      );
+    },
+    init(){
+      document.querySelectorAll('.flip-card').forEach(card=>{
+        card.addEventListener('click',function(){
+          if(!this.classList.contains('flipped')){
+            state.flippedCount++;
+            document.getElementById('flip-progress').textContent = state.flippedCount+' / '+document.querySelectorAll('.flip-card').length+' explored';
+            if(state.flippedCount===document.querySelectorAll('.flip-card').length){ addXP(10); toast('All questions explored! +10 XP','🧠'); }
+            sfx.pop();
+          }
+          this.classList.toggle('flipped');
+        });
+        card.addEventListener('keydown',e=>{ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); card.click(); } });
+      });
+    }
+  },
+
+/* ============================================================
+   SCENE 4 — THEORY (concept carousel)
+   ============================================================ */
+  theory:{
+    render(){
+      const concepts=[
+        {icon:'💡',text:'One project can have many LEDs — each one does its own job.'},
+        {icon:'🚦',text:'Each LED can stand for a different instruction: STOP, WAIT, or GO.'},
+        {icon:'🔢',text:'A sequence is doing things in a set order — like steps on a staircase.'},
+        {icon:'🛑',text:'Red always means STOP. Green always means GO. Consistency keeps everyone safe.'},
+        {icon:'📐',text:'The ORDER of a sequence matters — mixing it up can cause chaos!'},
+        {icon:'🔍',text:"Debugging means finding what's wrong, testing ideas, and fixing it."},
+        {icon:'🦾',text:'Great inventors never panic when something fails — they investigate!'}
+      ];
+      state.theoryIdx=0;
+      window.__theoryConcepts=concepts;
+      return (
+        header('Chapter 4 · Theory','Big Ideas, Bite by Bite','Quick concepts — tap through at your own pace.')+
+        '<div class="panel concept-card" id="concept-panel"></div>'+
+        '<div class="carousel-dots" id="concept-dots"></div>'+
+        '<div style="display:flex; justify-content:center; gap:10px;">'+
+          '<button class="btn btn-ghost btn-sm" id="theoryPrev">← Prev</button>'+
+          '<button class="btn btn-primary btn-sm" id="theoryNext">Next →</button>'+
+        '</div>'
+      );
+    },
+    init(){
+      renderConcept();
+      document.getElementById('theoryPrev').addEventListener('click',()=>{ sfx.click(); state.theoryIdx=Math.max(0,state.theoryIdx-1); renderConcept(); });
+      document.getElementById('theoryNext').addEventListener('click',()=>{
+        sfx.click();
+        if(state.theoryIdx<window.__theoryConcepts.length-1){ state.theoryIdx++; renderConcept(); }
+        else { toast('Theory complete! +5 XP','📘'); addXP(5); }
+      });
+    }
+  },
+
+/* ============================================================
+   SCENE 5 — DRAWING
+   ============================================================ */
+  drawing:{
+    render(){
+      return (
+        header('Chapter 5 · Blueprint','Design Your Traffic Light','Draw your traffic light with red, yellow & green — then sketch a broken one!')+
+        '<div class="panel">'+
+          mascotBubbleRow('happy','Grab your stylus (or finger)! Draw a traffic light, wire it up, then circle what could go wrong on a broken one.')+
+          '<div style="display:flex; gap:8px; margin:14px 0;">'+
+            '<button class="btn btn-sm btn-primary" id="modeGood" data-mode="good">✅ My Traffic Light</button>'+
+            '<button class="btn btn-sm btn-ghost" id="modeBad" data-mode="bad">🛠️ Broken One</button>'+
+          '</div>'+
+          '<canvas id="draw-canvas" width="600" height="450" aria-label="Drawing canvas"></canvas>'+
+          '<div class="palette" style="margin-top:12px;">'+
+            swatchBtn('#ff4d5e','red',true)+swatchBtn('#ffcb3d','yellow')+swatchBtn('#33e08a','green')+swatchBtn('#f4f7ff','white')+swatchBtn('#4dd8ff','cyan')+
+            '<button class="btn btn-ghost btn-sm" id="clearCanvas" style="margin-left:auto;">🧹 Clear</button>'+
+          '</div>'+
+        '</div>'
+      );
+    },
+    init(){
+      const canvas=document.getElementById('draw-canvas');
+      const ctx=canvas.getContext('2d');
+      ctx.fillStyle='#0f1330'; ctx.fillRect(0,0,canvas.width,canvas.height);
+      let drawing=false, color='#ff4d5e';
+      function pos(e){
+        const r=canvas.getBoundingClientRect();
+        const cx = (e.touches? e.touches[0].clientX : e.clientX) - r.left;
+        const cy = (e.touches? e.touches[0].clientY : e.clientY) - r.top;
+        return {x:cx*(canvas.width/r.width), y:cy*(canvas.height/r.height)};
+      }
+      function start(e){ drawing=true; const p=pos(e); ctx.beginPath(); ctx.moveTo(p.x,p.y); e.preventDefault(); }
+      function move(e){ if(!drawing) return; const p=pos(e); ctx.lineTo(p.x,p.y); ctx.strokeStyle=color; ctx.lineWidth=8; ctx.lineCap='round'; ctx.lineJoin='round'; ctx.stroke(); state.drawnStrokes=true; e.preventDefault(); }
+      function end(){ if(drawing){drawing=false; sfx.click();} }
+      canvas.addEventListener('mousedown',start); canvas.addEventListener('mousemove',move); window.addEventListener('mouseup',end);
+      canvas.addEventListener('touchstart',start,{passive:false}); canvas.addEventListener('touchmove',move,{passive:false}); canvas.addEventListener('touchend',end);
+      document.querySelectorAll('.swatch-btn').forEach(b=>{
+        b.addEventListener('click',()=>{ document.querySelectorAll('.swatch-btn').forEach(x=>x.classList.remove('active')); b.classList.add('active'); color=b.dataset.color; sfx.pop(); });
+      });
+      document.getElementById('clearCanvas').addEventListener('click',()=>{ ctx.fillStyle='#0f1330'; ctx.fillRect(0,0,canvas.width,canvas.height); sfx.click(); });
+      document.getElementById('modeGood').addEventListener('click',function(){ setDrawMode('good'); });
+      document.getElementById('modeBad').addEventListener('click',function(){ setDrawMode('bad'); });
+      function setDrawMode(m){
+        document.getElementById('modeGood').className='btn btn-sm '+(m==='good'?'btn-primary':'btn-ghost');
+        document.getElementById('modeBad').className='btn btn-sm '+(m==='bad'?'btn-primary':'btn-ghost');
+        toast(m==='good'?'Draw your traffic light!':'Draw a broken one & circle the problem!','✏️');
+      }
+    }
+  },
+
+/* ============================================================
+   SCENE 6 — HARDWARE: CIRCUIT BUILDER
+   ============================================================ */
+  hardware:{
+    render(){
+      state.hwLit={red:false,yellow:false,green:false};
+      state.hwBroken=true; state.hwFixed=false;
+      return (
+        header('Chapter 6 · Real-World Build','Build the Traffic Light Circuit','Tap each LED to test it. Then find and fix the broken wire!')+
+        '<div class="panel">'+
+          mascotBubbleRow('happy','Tap RED, YELLOW, then GREEN to test each light. Say the instruction out loud as it lights up!')+
+          '<div class="breadboard" style="margin-top:14px;">'+
+            '<div class="grid-3" id="led-grid">'+
+              ledSlot('red','RED · STOP')+ledSlot('yellow','YELLOW · WAIT')+ledSlot('green','GREEN · GO')+
+            '</div>'+
+          '</div>'+
+          '<div class="callout" id="hw-callout" style="margin-top:14px; display:none;">'+
+            '🔍 <div><b>Debugging Detective time!</b> One wire looks disconnected. Tap the broken wire to reconnect it.</div>'+
+          '</div>'+
+          '<div style="text-align:center; margin-top:14px;">'+
+            '<button class="btn btn-green" id="runSeqBtn" style="display:none;">▶️ Run Full Sequence</button>'+
+          '</div>'+
+        '</div>'
+      );
+    },
+    init(){
+      ['red','yellow','green'].forEach(c=>{
+        document.getElementById('led-'+c).addEventListener('click',()=>testLed(c));
+        document.getElementById('wire-'+c).addEventListener('click',()=>fixWire(c));
+      });
+      // break the yellow wire after red+green tested? break immediately but hidden until first two tested
+    }
+  },
+
+/* ============================================================
+   SCENE 7 — CHALLENGE
+   ============================================================ */
+  challenge:{
+    render(){
+      state.challengeSeqProgress=0;
+      state.customSignal={color:null,text:''};
+      return (
+        header('Chapter 7 · Challenge','🚨 Robot City Emergency Challenge','A busy intersection needs to reopen — prove your traffic light works!')+
+        '<div class="panel">'+
+          mascotBubbleRow('surprised','Quick! Run the correct signal sequence to reopen the intersection: RED → GREEN → YELLOW → RED!')+
+          '<div style="display:flex; align-items:center; gap:22px; flex-wrap:wrap; justify-content:center; margin-top:14px;">'+
+            trafficLightHousing('ch')+
+            '<div style="display:flex; flex-direction:column; gap:10px; align-items:center;">'+
+              '<div id="chSeqButtons" class="grid-3" style="gap:8px;">'+
+                miniColorBtn('red','ch')+miniColorBtn('yellow','ch')+miniColorBtn('green','ch')+
+              '</div>'+
+              '<div id="chSeqStatus" style="font-size:13px;color:var(--ink-dim);">Tap in the correct order!</div>'+
+            '</div>'+
+          '</div>'+
+        '</div>'+
+        '<div class="panel" id="bonusPanel" style="display:none;">'+
+          mascotBubbleRow('thinking','Bonus round! Invent a brand-new signal for Robot City. Pick a color and tell me what it means.')+
+          '<div class="signal-picker" style="margin:14px 0;">'+
+            signalSwatch('#4dd8ff','blue')+signalSwatch('#ffffff','white')+signalSwatch('#b07bff','purple')+signalSwatch('#ff9f45','orange')+
+          '</div>'+
+          '<input type="text" id="signalText" placeholder="e.g. Robot Emergency! Pull over now" maxlength="60" style="width:100%; padding:12px 14px; border-radius:12px; border:1px solid var(--glass-brd); background:rgba(255,255,255,0.06); color:#fff; font-family:var(--font-body); font-size:14px;">'+
+          '<button class="btn btn-glow btn-sm" id="submitSignal" style="margin-top:12px;">✨ Add My Signal</button>'+
+          '<div id="customSignalPreview" style="margin-top:12px;"></div>'+
+        '</div>'
+      );
+    },
+    init(){
+      state.challengeSeqProgress=0;
+      ['red','yellow','green'].forEach(c=>{
+        document.getElementById('mcbtn-ch-'+c).addEventListener('click',()=>chSeqInput(c));
+      });
+      document.querySelectorAll('.signal-swatch').forEach(sw=>{
+        sw.addEventListener('click',()=>{
+          document.querySelectorAll('.signal-swatch').forEach(x=>x.classList.remove('active'));
+          sw.classList.add('active'); state.customSignal.color=sw.dataset.color; sfx.pop();
+        });
+      });
+      document.getElementById('submitSignal') && document.getElementById('submitSignal').addEventListener('click', submitCustomSignal);
+    }
+  },
+
+/* ============================================================
+   SCENE 8 — REFLECTION QUIZ
+   ============================================================ */
+  reflection:{
+    render(){
+      const items=[
+        {q:'What does a RED light tell a robot?', opts:['GO faster','STOP','Take a nap'], correct:1},
+        {q:'Why does the order of lights matter?', opts:['It looks pretty','It gives clear, safe instructions',"It doesn't matter at all"], correct:1},
+        {q:'What is debugging?', opts:['Ignoring the problem','Finding, testing, and fixing a mistake','Buying a new robot'], correct:1},
+        {q:'What happens if a signal gives the WRONG instruction?', opts:['Robots could crash','Nothing changes','Robots go faster'], correct:0}
+      ];
+      window.__quizItems=items; state.quizScore=0; state.quizAnswered={};
+      return (
+        header('Chapter 8 · Reflection','What Did You Learn?','Answer each question — Robot Byte is cheering for you!')+
+        '<div class="panel">'+ mascotBubbleRow('thinking',"Let's see what stuck! No pressure — just do your best.") +'</div>'+
+        items.map((it,i)=>quizCard(i,it)).join('')+
+        '<p style="text-align:center; color:var(--ink-dim); font-size:13px;" id="quiz-score">Score: 0 / '+items.length+'</p>'
+      );
+    },
+    init(){
+      window.__quizItems.forEach((it,i)=>{
+        document.querySelectorAll('.quiz-option[data-q="'+i+'"]').forEach(btn=>{
+          btn.addEventListener('click',function(){ answerQuiz(i, parseInt(this.dataset.opt,10)); });
+        });
+      });
+    }
+  },
+
+/* ============================================================
+   SCENE 9 — CELEBRATION
+   ============================================================ */
+  celebration:{
+    render(){
+      return (
+        '<div class="panel" style="text-align:center;">'+
+          header('Chapter 9 · Celebration','Robot City is SAVED!','')+
+          '<div class="badge-medal" style="margin-top:10px;">🚦</div>'+
+          '<h2 style="font-family:var(--font-display); margin:14px 0 4px;">Badge Unlocked!</h2>'+
+          '<p style="font-family:var(--font-display); font-weight:800; color:#ffcb3d; font-size:20px; margin:0;">Robot City Traffic Engineer</p>'+
+          '<p style="color:var(--ink-dim); margin:6px 0 18px;">+50 XP earned</p>'+
+          '<div class="certificate">'+
+            '<div style="font-size:36px;">🏅</div>'+
+            '<p style="font-family:var(--font-display); font-weight:700; margin:6px 0;">This certifies that</p>'+
+            '<input class="name-input" id="certName" placeholder="Type your name" value="">'+
+            '<p style="color:var(--ink-dim); margin:10px 0 0; font-size:14px;">rebuilt Robot City\'s traffic light and kept every robot safe.</p>'+
+          '</div>'+
+          '<div style="margin-top:18px;">'+ mascotBubbleRow('proud','You did it! You investigated, built, debugged, and saved the day like a true inventor!') +'</div>'+
+        '</div>'
+      );
+    },
+    init(){
+      launchConfetti();
+      sfx.fanfare();
+      let cur=0; const target=50;
+      const timer=setInterval(()=>{
+        cur+=2; if(cur>=target){cur=target; clearInterval(timer);}
+        addXPDirect(cur);
+      },30);
+      function addXPDirect(v){ /* smooth XP counter handled by addXP baseline; just set display bump */ }
+      addXP(50);
+    }
+  },
+
+/* ============================================================
+   SCENE 10 — HOMEWORK
+   ============================================================ */
+  homework:{
+    render(){
+      return (
+        header('Take-Home Mission','Become a Signal Detective','')+
+        '<div class="homework-card">'+
+          '<div class="homework-tag">HOMEWORK</div>'+
+          mascotBubbleRow('happy','Your mission continues at home! Explore the world for more signals.')+
+          '<ol style="margin:14px 0 0; padding-left:20px; line-height:1.7; font-size:14.5px;">'+
+            '<li>With a grown-up, find <b>3 signals</b> near your home, school, or neighborhood (traffic lights, crosswalk signs, elevator buttons, warning lights...).</li>'+
+            '<li>Draw each signal and explain what instruction it gives.</li>'+
+            '<li>Invent <b>ONE new signal</b> for Robot City — draw it and describe what it tells a robot to do!</li>'+
+          '</ol>'+
+        '</div>'+
+        '<div class="panel" style="text-align:center;">'+
+          mascotBubbleRow('proud','Mission 3 complete. Robot City is safe because of YOU. See you on the next mission, Inventor!')+
+          '<div style="margin-top:16px; display:flex; gap:8px; justify-content:center; flex-wrap:wrap;">'+
+            objChip('Badge: Robot City Traffic Engineer')+objChip('+50 XP')+objChip('Mission 3 Complete')+
+          '</div>'+
+        '</div>'
+      );
+    },
+    init(){}
+  }
+};
+
+/* ============================================================
+   HELPER RENDER FUNCTIONS
+   ============================================================ */
+function roadSVG(){
+  return '<svg viewBox="0 0 300 180" preserveAspectRatio="none">'+
+    '<rect width="300" height="180" fill="#171b39"/>'+
+    '<rect x="0" y="70" width="300" height="40" fill="#2a2f57"/>'+
+    '<rect x="130" y="0" width="40" height="180" fill="#2a2f57"/>'+
+    '<g stroke="#4a5290" stroke-width="3" stroke-dasharray="10 8">'+
+      '<line x1="0" y1="90" x2="130" y2="90"/><line x1="170" y1="90" x2="300" y2="90"/>'+
+      '<line x1="150" y1="0" x2="150" y2="70"/><line x1="150" y1="110" x2="150" y2="180"/>'+
+    '</g>'+
+  '</svg>';
+}
+function robotChip(id,emoji,left,top){
+  return '<div class="robot-chip" id="'+id+'" style="left:'+left+';top:'+top+'; background:#2a2f57;">'+emoji+'</div>';
+}
+function colorBtn(color,label,emoji){
+  return '<button class="color-btn '+color+'" id="cbtn-'+color+'" aria-label="'+label+'">'+
+    '<span style="font-size:22px;">'+emoji+'</span><span>'+label+'</span></button>';
+}
+function miniColorBtn(color,prefix){
+  const id = prefix?('mcbtn-'+prefix+'-'+color):('mcbtn-'+color);
+  const label = color==='red'?'STOP':color==='yellow'?'WAIT':'GO';
+  return '<button class="color-btn '+color+'" id="'+id+'" style="padding:12px 6px;" aria-label="'+label+' '+color+'"><span class="swatch" style="background:currentColor;"></span><span style="font-size:11px;">'+label+'</span></button>';
+}
+function trafficLightHousing(prefix){
+  return '<div class="tl-housing" id="tlh-'+prefix+'">'+
+    '<div class="tl-lamp" id="lamp-'+prefix+'-red"></div>'+
+    '<div class="tl-lamp" id="lamp-'+prefix+'-yellow"></div>'+
+    '<div class="tl-lamp" id="lamp-'+prefix+'-green"></div>'+
+  '</div>';
+}
+function flipCard(i,q,a){
+  return '<div class="flip-card" tabindex="0" role="button" aria-label="Question card">'+
+    '<div class="flip-inner">'+
+      '<div class="flip-face flip-front">'+q+'</div>'+
+      '<div class="flip-face flip-back">'+a+'</div>'+
+    '</div></div>';
+}
+function swatchBtn(hex,name,active){
+  return '<button class="swatch-btn'+(active?' active':'')+'" style="background:'+hex+';" data-color="'+hex+'" aria-label="'+name+' color"></button>';
+}
+function ledSlot(color,label){
+  return '<div class="led-slot">'+
+    '<div class="wire" id="wire-'+color+'"></div>'+
+    '<div class="led-bulb" id="led-'+color+'" role="button" tabindex="0" aria-label="'+label+' LED"></div>'+
+    '<div class="led-label">'+label+'</div>'+
+  '</div>';
+}
+function signalSwatch(hex,name){
+  return '<div class="signal-swatch" style="background:'+hex+(hex==='#ffffff'?';border:2px solid #333':'')+';" data-color="'+hex+'" title="'+name+'" tabindex="0" role="button" aria-label="'+name+' signal color"></div>';
+}
+function quizCard(i,item){
+  return '<div class="panel" style="padding:16px;">'+
+    '<p style="font-family:var(--font-display); font-weight:700; margin:0 0 10px;">'+(i+1)+'. '+item.q+'</p>'+
+    '<div style="display:flex; flex-direction:column; gap:8px;">'+
+      item.opts.map((o,oi)=>'<button class="quiz-option" data-q="'+i+'" data-opt="'+oi+'">'+o+'</button>').join('')+
+    '</div>'+
+  '</div>';
+}
+
+/* ============================================================
+   TYPEWRITER
+   ============================================================ */
+function typeInto(el, text, speed, done){
+  if(!el) return;
+  let i=0;
+  el.innerHTML='';
+  const span=document.createElement('span'); el.appendChild(span);
+  const cursor=document.createElement('span'); cursor.className='cursor'; el.appendChild(cursor);
+  const timer=setInterval(()=>{
+    span.textContent = text.slice(0,i+1);
+    i++;
+    if(i%3===0) sfx.click();
+    if(i>=text.length){ clearInterval(timer); cursor.remove(); if(done) done(); }
+  },speed);
+}
+
+/* ============================================================
+   SCENE 2 LOGIC — traffic controller game
+   ============================================================ */
+function reactRobots(color){
+  sfx.pop();
+  const ids=['g1','g2','g3'];
+  ids.forEach(id=>{
+    const el=document.getElementById(id); if(!el) return;
+    el.classList.remove('frozen','slow','bump');
+    void el.offsetWidth;
+    if(color==='red'){ el.classList.add('frozen'); el.style.left = el.style.left; }
+    else if(color==='yellow'){ el.classList.add('slow'); }
+    else if(color==='green'){ el.style.left='75%'; }
+  });
+  if(color==='green'){ setTimeout(()=>{ ids.forEach((id,i)=>{ const el=document.getElementById(id); if(el){ el.style.left = (16+i*2)+'%'; } }); },1400); }
+  const btn=document.getElementById('cbtn-'+color);
+  btn.classList.add('correct-flash'); setTimeout(()=>btn.classList.remove('correct-flash'),500);
+  announce(color==='red'?'Robots stop.':color==='yellow'?'Robots slow down and wait.':'Robots go!');
+}
+
+function playSeqDemo(){
+  const seq=['red','green','yellow','red'];
+  seq.forEach((c,i)=>{
+    setTimeout(()=>{
+      lightLamp('seq', c);
+      sfx.click();
+      const statusEl = document.getElementById('seqStatus');
+      if (statusEl) statusEl.textContent = 'Showing: '+c.toUpperCase();
+    }, i*750);
+  });
+  setTimeout(()=>{
+    allLampsOff('seq');
+    const statusEl = document.getElementById('seqStatus');
+    if (statusEl) statusEl.textContent='Now you try! Tap the sequence: RED → GREEN → YELLOW → RED';
+  }, seq.length*750+200);
+}
+function lightLamp(prefix,color){
+  ['red','yellow','green'].forEach(c=>{
+    const lamp=document.getElementById('lamp-'+prefix+'-'+c);
+    if(lamp) lamp.className='tl-lamp'+(c===color?' on-'+c:'');
+  });
+}
+function allLampsOff(prefix){ ['red','yellow','green'].forEach(c=>{ const l=document.getElementById('lamp-'+prefix+'-'+c); if(l) l.className='tl-lamp'; }); }
+
+function seqInput(color){
+  const target=state.seqTarget;
+  const btn=document.getElementById('mcbtn-'+color);
+  const statusEl = document.getElementById('seqStatus');
+  if(color===target[state.seqProgress]){
+    sfx.pop();
+    lightLamp('seq',color);
+    if (btn) { btn.classList.add('correct-flash'); setTimeout(()=>btn.classList.remove('correct-flash'),400); }
+    state.seqProgress++;
+    if (statusEl) statusEl.textContent = 'Correct! ('+state.seqProgress+'/'+target.length+')';
+    if(state.seqProgress>=target.length){
+      sfx.success();
+      addXP(15);
+      toast('Sequence complete! +15 XP','🚦');
+      if (statusEl) statusEl.textContent='Perfect sequence! Robot City signal restored!';
+      setTimeout(()=>{ allLampsOff('seq'); state.seqProgress=0; },1500);
+    }
+  } else {
+    sfx.error();
+    if (btn) { btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),400); }
+    state.seqProgress=0; allLampsOff('seq');
+    if (statusEl) statusEl.textContent='Not quite — that would be unsafe! Try again from the start.';
+  }
+}
+
+/* ============================================================
+   SCENE 6 LOGIC — hardware circuit builder
+   ============================================================ */
+function testLed(color){
+  const led=document.getElementById('led-'+color);
+  const wire=document.getElementById('wire-'+color);
+  if(color==='yellow' && state.hwBroken && !state.hwFixed){
+    wire.classList.add('broken');
+    sfx.error();
+    document.getElementById('hw-callout').style.display='flex';
+    announce('The yellow wire seems disconnected!');
+    return;
+  }
+  led.classList.add('lit-'+color);
+  sfx.pop();
+  state.hwLit[color]=true;
+  toast((color==='red'?'RED — STOP!':color==='yellow'?'YELLOW — WAIT!':'GREEN — GO!'),'💡');
+  checkHwComplete();
+}
+function fixWire(color){
+  if(color!=='yellow') return;
+  const wire=document.getElementById('wire-'+color);
+  if(wire.classList.contains('broken')){
+    wire.classList.remove('broken');
+    wire.classList.add('fixed-flash');
+    state.hwFixed=true; state.hwBroken=false;
+    sfx.success();
+    addXP(10);
+    toast('Wire reconnected! +10 XP','🔧');
+    document.getElementById('hw-callout').style.display='none';
+    testLed('yellow');
+  }
+}
+function checkHwComplete(){
+  if(state.hwLit.red && state.hwLit.yellow && state.hwLit.green){
+    const btn=document.getElementById('runSeqBtn');
+    if(btn){ btn.style.display='inline-flex'; btn.onclick=runFullHwSequence; }
+  }
+}
+function runFullHwSequence(){
+  const seq=['red','green','yellow','red'];
+  seq.forEach((c,i)=>{
+    setTimeout(()=>{
+      document.querySelectorAll('.led-bulb').forEach(l=>l.className='led-bulb');
+      document.getElementById('led-'+c).classList.add('lit-'+c);
+      sfx.click();
+    }, i*600);
+  });
+  setTimeout(()=>{
+    sfx.success(); addXP(15); toast('Full sequence works! +15 XP','🎉');
+    document.querySelectorAll('.led-bulb').forEach(l=>l.className='led-bulb');
+  }, seq.length*600+200);
+}
+
+/* ============================================================
+   SCENE 7 LOGIC — challenge
+   ============================================================ */
+function chSeqInput(color){
+  const target=state.seqTarget;
+  const btn=document.getElementById('mcbtn-ch-'+color);
+  if(color===target[state.challengeSeqProgress]){
+    sfx.pop(); lightLamp('ch',color);
+    btn.classList.add('correct-flash'); setTimeout(()=>btn.classList.remove('correct-flash'),400);
+    state.challengeSeqProgress++;
+    document.getElementById('chSeqStatus').textContent='Great! ('+state.challengeSeqProgress+'/'+target.length+')';
+    if(state.challengeSeqProgress>=target.length){
+      sfx.success(); addXP(20);
+      toast('Intersection reopened! +20 XP','🚨');
+      document.getElementById('chSeqStatus').textContent='Intersection reopened! Robot City is safe.';
+      document.getElementById('bonusPanel').style.display='block';
+      setTimeout(()=>allLampsOff('ch'),1200);
+    }
+  } else {
+    sfx.error(); btn.classList.add('wrong'); setTimeout(()=>btn.classList.remove('wrong'),400);
+    state.challengeSeqProgress=0; allLampsOff('ch');
+    document.getElementById('chSeqStatus').textContent='Uh oh, try again from RED!';
+  }
+}
+function submitCustomSignal(){
+  const text=document.getElementById('signalText').value.trim();
+  if(!state.customSignal.color || !text){ sfx.error(); toast('Pick a color and describe your signal!','⚠️'); return; }
+  state.customSignal.text=text;
+  sfx.success(); addXP(10);
+  document.getElementById('customSignalPreview').innerHTML =
+    '<div class="custom-card"><div class="cs-dot" style="background:'+state.customSignal.color+'; color:'+state.customSignal.color+';"></div>'+
+    '<div><b style="font-family:var(--font-display);">Your new signal!</b><br><span style="font-size:13.5px;color:var(--ink-dim);">'+escapeHtml(text)+'</span></div></div>';
+  toast('New signal invented! +10 XP','💡');
+}
+function escapeHtml(s){ const d=document.createElement('div'); d.textContent=s; return d.innerHTML; }
+
+/* ============================================================
+   SCENE 4 LOGIC — theory carousel
+   ============================================================ */
+function renderConcept(){
+  const c=window.__theoryConcepts[state.theoryIdx];
+  const panel=document.getElementById('concept-panel');
+  panel.style.opacity=0;
+  setTimeout(()=>{
+    panel.innerHTML='<div class="concept-icon">'+c.icon+'</div><div class="concept-text">'+c.text+'</div>';
+    panel.style.transition='opacity .25s'; panel.style.opacity=1;
+  },120);
+  const dots=document.getElementById('concept-dots');
+  dots.innerHTML = window.__theoryConcepts.map((_,i)=>'<span class="'+(i===state.theoryIdx?'active':'')+'"></span>').join('');
+  document.getElementById('theoryPrev').disabled = state.theoryIdx===0;
+}
+
+/* ============================================================
+   SCENE 8 LOGIC — quiz
+   ============================================================ */
+function answerQuiz(qi, oi){
+  if(state.quizAnswered[qi]!==undefined) return;
+  state.quizAnswered[qi]=oi;
+  const item=window.__quizItems[qi];
+  const btns=document.querySelectorAll('.quiz-option[data-q="'+qi+'"]');
+  btns.forEach(b=>{
+    b.disabled=true;
+    const idx=parseInt(b.dataset.opt,10);
+    if(idx===item.correct) b.classList.add('correct');
+    else if(idx===oi) b.classList.add('incorrect');
+  });
+  if(oi===item.correct){ sfx.success(); state.quizScore++; addXP(5); }
+  else { sfx.error(); }
+  document.getElementById('quiz-score').textContent='Score: '+state.quizScore+' / '+window.__quizItems.length;
+}
+
+/* ============================================================
+   CONFETTI
+   ============================================================ */
+function launchConfetti(){
+  const canvas=document.getElementById('confetti-canvas');
+  const ctx=canvas.getContext('2d');
+  function resize(){ canvas.width=window.innerWidth; canvas.height=window.innerHeight; }
+  resize();
+  const colors=['#ff4d5e','#ffcb3d','#33e08a','#4dd8ff','#b07bff','#ff6ec9'];
+  const pieces=Array.from({length:110},()=> ({
+    x:Math.random()*canvas.width, y:-20-Math.random()*canvas.height*0.5,
+    r:4+Math.random()*5, c:colors[Math.floor(Math.random()*colors.length)],
+    vy:2+Math.random()*3, vx:-1.5+Math.random()*3, rot:Math.random()*360, vr:-6+Math.random()*12
+  }));
+  let frame=0, maxFrames=280;
+  (function anim(){
+    frame++;
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    pieces.forEach(p=>{
+      p.x+=p.vx; p.y+=p.vy; p.rot+=p.vr;
+      ctx.save(); ctx.translate(p.x,p.y); ctx.rotate(p.rot*Math.PI/180);
+      ctx.fillStyle=p.c; ctx.fillRect(-p.r/2,-p.r/2,p.r,p.r*1.6);
+      ctx.restore();
+    });
+    if(frame<maxFrames) requestAnimationFrame(anim);
+    else ctx.clearRect(0,0,canvas.width,canvas.height);
+  })();
+}
+
+/* ============================================================
+   STARFIELD
+   ============================================================ */
+(function starfield(){
+  const wrap=document.getElementById('stars');
+  for(let i=0;i<50;i++){
+    const s=document.createElement('div'); s.className='star';
+    s.style.left=Math.random()*100+'%'; s.style.top=Math.random()*70+'%';
+    s.style.animationDelay=(Math.random()*3)+'s';
+    wrap.appendChild(s);
+  }
+})();
+
+/* ============================================================
+   BOOT
+   ============================================================ */
+renderHud();
+updateNav();
+render();
+
+/* keyboard nav */
+document.addEventListener('keydown',function(e){
+  if(e.target && (e.target.tagName==='INPUT'||e.target.tagName==='TEXTAREA')) return;
+  if(e.key==='ArrowRight'){ document.getElementById('nextBtn').click(); }
+  if(e.key==='ArrowLeft'){ document.getElementById('prevBtn').click(); }
+});
+
+})();
+</script>
+</body>
+</html>
