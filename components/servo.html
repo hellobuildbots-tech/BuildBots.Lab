@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Servo Motor Demo</title>
+<style>
+  body { margin:0; padding:40px; background:#0F172A; font-family:sans-serif; color:#fff; text-align:center; }
+  .servo-arm { width: 120px; height: 16px; background: #FF8C42; border-radius: 8px; margin: 40px auto; transform-origin: left center; transition: transform 0.3s; }
+</style>
+</head>
+<body>
+<div class="servo-arm" id="arm"></div>
+<input type="range" min="0" max="180" value="0" oninput="document.getElementById('arm').style.transform = 'rotate(' + this.value + 'deg)'">
+</body>
+</html>

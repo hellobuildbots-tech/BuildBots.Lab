@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>XP Counter</title>
+<style>
+  body { margin:0; padding:40px; background:#0F172A; font-family:sans-serif; color:#FFD23F; font-size:48px; font-weight:bold; }
+</style>
+</head>
+<body>
+⭐ +<span id="xpVal">150</span> XP
+<script>
+  let count = 0;
+  setInterval(() => { if(count < 150) { count += 5; document.getElementById('xpVal').textContent = count; } }, 30);
+</script>
+</body>
+</html>

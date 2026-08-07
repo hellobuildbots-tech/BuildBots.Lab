@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuildBots AI — Reusable HUD Component</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Fredoka:wght@600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --yellow: #FFD23F; --cyan: #3FE0FF; }
+  body { margin: 0; padding: 20px; background: #0F172A; font-family: 'Fredoka', sans-serif; color: #FFF; }
+  .hud-bar {
+    display: flex; align-items: center; justify-content: space-between; padding: 12px 24px;
+    background: rgba(15, 23, 42, 0.75); backdrop-filter: blur(12px); border-bottom: 2px solid rgba(255,255,255,0.15);
+    border-radius: 20px; box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  }
+  .hud-chip {
+    background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.25);
+    padding: 6px 16px; border-radius: 999px; font-family: 'Baloo 2', cursive; font-weight: 700; font-size: 15px; color: var(--yellow);
+  }
+  .star-slot { display: inline-block; width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.15); text-align: center; line-height: 28px; margin-left: 4px; }
+  .star-slot.active { background: var(--yellow); color: #000; box-shadow: 0 0 14px var(--yellow); }
+</style>
+</head>
+<body>
+<div class="hud-bar" id="hudApp">
+  <div class="hud-chip">🗺️ <span id="hudMission">Mission 1 of 8</span></div>
+  <div class="hud-chip">🏅 <span id="hudBadge">Junior Inventor</span></div>
+  <div>
+    <span>⭐ Stars: </span>
+    <span class="star-slot active">⭐</span>
+    <span class="star-slot active">⭐</span>
+    <span class="star-slot active">⭐</span>
+    <span class="star-slot">⭐</span>
+    <span class="star-slot">⭐</span>
+  </div>
+</div>
+</body>
+</html>

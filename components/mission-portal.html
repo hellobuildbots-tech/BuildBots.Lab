@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuildBots AI — Mission Intro Portal</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --blue: #1E6FFF; --cyan: #3FE0FF; --yellow: #FFD23F; --orange: #FF8C42;
+    --dark-bg: #0F172A; --radius: 28px;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; min-height: 100vh;
+    background: radial-gradient(circle at center, #1E3B8A 0%, #0F172A 100%);
+    font-family: 'Fredoka', sans-serif; color: #FFF;
+    display: flex; align-items: center; justify-content: center; overflow: hidden;
+  }
+  .portal-container {
+    max-width: 750px; width: 90%; text-align: center;
+    background: rgba(255, 255, 255, 0.12);
+    backdrop-filter: blur(16px); -webkit-backdrop-filter: blur(16px);
+    border: 2px solid rgba(255, 255, 255, 0.25);
+    border-radius: var(--radius); padding: 40px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+    position: relative; animation: popIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes popIn { 0% { opacity: 0; transform: scale(0.85); } 100% { opacity: 1; transform: scale(1); } }
+  
+  .portal-ring {
+    width: 140px; height: 140px; margin: 0 auto 20px; border-radius: 50%;
+    background: radial-gradient(circle, var(--cyan), var(--blue));
+    box-shadow: 0 0 40px var(--cyan);
+    display: flex; align-items: center; justify-content: center; font-size: 64px;
+    animation: portalPulse 2s infinite ease-in-out;
+  }
+  @keyframes portalPulse { 0%, 100% { transform: scale(1); box-shadow: 0 0 30px var(--cyan); } 50% { transform: scale(1.1); box-shadow: 0 0 60px var(--yellow); } }
+
+  h1.portal-title { font-family: 'Baloo 2', cursive; font-size: 38px; margin: 0 0 10px; color: var(--yellow); text-shadow: 0 4px 12px rgba(0,0,0,0.4); }
+  p.portal-subtitle { font-size: 20px; color: rgba(255,255,255,0.9); margin-bottom: 24px; line-height: 1.4; }
+
+  .meta-chips { display: flex; justify-content: center; gap: 12px; margin-bottom: 30px; }
+  .chip { background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3); padding: 8px 18px; border-radius: 999px; font-weight: 700; font-size: 15px; color: var(--cyan); }
+
+  .accept-btn {
+    font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 22px;
+    padding: 16px 36px; border-radius: 999px; border: none; cursor: pointer;
+    background: linear-gradient(135deg, var(--yellow), var(--orange)); color: #3A1C00;
+    box-shadow: 0 10px 25px rgba(255, 140, 66, 0.5); transition: all 0.2s;
+  }
+  .accept-btn:hover { transform: scale(1.06); box-shadow: 0 14px 35px rgba(255, 140, 66, 0.7); }
+</style>
+</head>
+<body>
+
+<div class="portal-container" id="portalApp">
+  <div class="portal-ring" id="portalIcon">🚀</div>
+  <h1 class="portal-title" id="portalTitle">MISSION BRIEFING</h1>
+  <p class="portal-subtitle" id="portalSub">Loading mission specs...</p>
+  <div class="meta-chips">
+    <div class="chip" id="chipDiff">⚡ Easy</div>
+    <div class="chip" id="chipReward">⭐ 50 XP</div>
+  </div>
+  <button class="accept-btn" id="portalBtn" onclick="acceptMission()">ACCEPT MISSION 🚀</button>
+</div>
+
+<script>
+const missionConfig = {
+  title: "THE SECRET INVENTOR'S LAB",
+  subtitle: "Help Bolt unlock the secret laboratory vault and find the 5 hidden robot treasures!",
+  icon: "🌀",
+  difficulty: "⚡ Starter",
+  reward: "⭐ +100 XP",
+  buttonText: "ENTER THE LAB 🚀",
+  onAccept: () => alert("Mission Accepted!")
+};
+
+function initPortal(config) {
+  document.getElementById('portalTitle').textContent = config.title;
+  document.getElementById('portalSub').textContent = config.subtitle;
+  document.getElementById('portalIcon').textContent = config.icon;
+  document.getElementById('chipDiff').textContent = config.difficulty;
+  document.getElementById('chipReward').textContent = config.reward;
+  document.getElementById('portalBtn').textContent = config.buttonText;
+}
+
+function acceptMission() {
+  const audio = new (window.AudioContext || window.webkitAudioContext)();
+  const osc = audio.createOscillator(); const gain = audio.createGain();
+  osc.connect(gain); gain.connect(audio.destination);
+  osc.frequency.setValueAtTime(523, audio.currentTime);
+  osc.frequency.setValueAtTime(659, audio.currentTime + 0.1);
+  gain.gain.setValueAtTime(0.3, audio.currentTime);
+  osc.start(); osc.stop(audio.currentTime + 0.3);
+
+  document.getElementById('portalApp').style.transform = 'scale(0.9)';
+  setTimeout(() => missionConfig.onAccept(), 300);
+}
+
+initPortal(missionConfig);
+</script>
+</body>
+</html>

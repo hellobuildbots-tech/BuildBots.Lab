@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Drag and Drop Component</title>
+<style>
+  body { margin:0; padding:40px; background:#0F172A; font-family:sans-serif; color:#fff; }
+  .dropzone { width: 200px; height: 120px; border: 3px dashed #3FE0FF; border-radius: 20px; display: flex; align-items: center; justify-content: center; margin-bottom: 20px; }
+  .item { width: 100px; height: 50px; background: #FFD23F; color: #000; font-weight: bold; border-radius: 12px; display: flex; align-items: center; justify-content: center; cursor: grab; }
+</style>
+</head>
+<body>
+<div class="dropzone" ondragover="event.preventDefault()" ondrop="drop(event)">DROP HERE</div>
+<div class="item" draggable="true" ondragstart="event.dataTransfer.setData('text', 'battery')">🔋 Battery</div>
+<script>
+  function drop(e) { e.preventDefault(); alert('Attached Component!'); }
+</script>
+</body>
+</html>

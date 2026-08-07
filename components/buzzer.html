@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Buzzer Demo</title>
+<style>
+  body { margin:0; padding:40px; background:#0F172A; text-align:center; font-family:sans-serif; color:#fff; }
+  .buzzer { font-size: 80px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="buzzer" onclick="beep()">🔊</div>
+<script>
+  function beep() {
+    const a = new AudioContext(); const o = a.createOscillator();
+    o.connect(a.destination); o.frequency.value = 880; o.start(); o.stop(a.currentTime + 0.2);
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>Memory Match</title>
+<style>
+  body { margin:0; padding:40px; background:#0F172A; }
+  .grid { display: grid; grid-template-columns: repeat(2, 80px); gap: 10px; }
+  .card { width: 80px; height: 80px; background: #3FE0FF; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer; }
+</style>
+</head>
+<body>
+<div class="grid">
+  <div class="card" onclick="this.textContent='🔋'">❓</div>
+  <div class="card" onclick="this.textContent='🔋'">❓</div>
+</div>
+</body>
+</html>

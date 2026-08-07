@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BuildBots AI — 15 Interactive Robotics Games</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Fredoka:wght@500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+<style>
+  :root {
+    --blue: #1E6FFF; --cyan: #3FE0FF; --yellow: #FFD23F; --lime: #7ED957;
+    --orange: #FF8C42; --purple: #9B5DE5; --red: #FF4757; --dark: #0F172A;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 0; height: 100vh; font-family: 'Fredoka', sans-serif;
+    background: radial-gradient(circle at center, #1E3B8A 0%, #0F172A 100%);
+    color: #FFF; overflow: hidden; user-select: none;
+  }
+  .bg-grid {
+    position: fixed; inset: 0; pointer-events: none; opacity: 0.15;
+    background-image: linear-gradient(#FFF 1px, transparent 1px), linear-gradient(90deg, #FFF 1px, transparent 1px);
+    background-size: 36px 36px;
+  }
+
+  /* HUD */
+  .hud {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 50; padding: 12px 24px;
+    background: rgba(15, 23, 42, 0.85); backdrop-filter: blur(10px);
+    display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid rgba(255,255,255,0.15);
+  }
+  .hud-chip { background: rgba(255,255,255,0.12); padding: 6px 16px; border-radius: 999px; font-weight: 700; color: var(--yellow); }
+  .hud-stars { display: flex; gap: 6px; }
+  .star { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,0.15); display: flex; align-items: center; justify-content: center; opacity: 0.4; transition: 0.3s; font-size: 14px; }
+  .star.on { opacity: 1; background: var(--yellow); color: #000; box-shadow: 0 0 16px var(--yellow); transform: scale(1.1); }
+
+  /* STAGE */
+  .stage { height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 70px 20px 75px; }
+  
+  /* CUTE SENSOR ROBOT (LOCATED RIGHT ABOVE THE QUIZ CARD) */
+  .robot-mascot-wrapper {
+    position: relative; height: 160px; display: flex; align-items: center; justify-content: center; margin-bottom: 6px; z-index: 20;
+  }
+  
+  .cute-robot {
+    display: flex; flex-direction: column; align-items: center;
+    animation: robotFloat 3.4s ease-in-out infinite; transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+  @keyframes robotFloat { 0%, 100% { transform: translateY(0px); } 50% { transform: translateY(-10px); } }
+
+  .robot-antenna { width: 4px; height: 18px; background: #7c8790; border-radius: 2px; position: relative; }
+  .antenna-ball {
+    width: 10px; height: 10px; background: #4fd1ff; border-radius: 50%; position: absolute; top: -8px; left: -3px;
+    box-shadow: 0 0 10px #4fd1ff; animation: blinkLight 1.8s infinite;
+  }
+  @keyframes blinkLight { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+  .robot-head {
+    width: 120px; height: 82px; background: linear-gradient(155deg, #f1f4f6, #cfd8dd);
+    border-radius: 20px; border: 3px solid #97a3aa; position: relative; margin-top: 2px;
+    box-shadow: inset 0 -6px 12px rgba(0,0,0,0.1), 0 4px 10px rgba(0,0,0,0.25);
+  }
+
+  .ultrasonic { position: absolute; top: -7px; left: 50%; transform: translateX(-50%); display: flex; gap: 6px; }
+  .ultrasonic-cap { width: 14px; height: 14px; border-radius: 50%; background: #eef2f4; border: 2px solid #7c8790; }
+
+  .visor {
+    position: absolute; top: 22px; left: 50%; transform: translateX(-50%);
+    width: 92px; height: 38px; background: #202a31; border-radius: 14px;
+    display: flex; align-items: center; justify-content: center; gap: 14px;
+  }
+  .robot-eye {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: radial-gradient(circle at 38% 32%, #dff7ff, #5fc6e8 45%, #1b6f8c 78%, #0c3b4c 100%);
+    box-shadow: 0 0 8px rgba(95, 198, 232, 0.6); transition: all 0.3s;
+    animation: eyeBlink 4.5s ease-in-out infinite;
+  }
+  @keyframes eyeBlink { 0%, 94%, 100% { transform: scaleY(1); } 97% { transform: scaleY(0.15); } }
+
+  .robot-body {
+    width: 135px; height: 88px; background: linear-gradient(155deg, #fbfcfd, #c6cfd4);
+    border-radius: 18px; border: 3px solid #97a3aa; position: relative; margin-top: 3px;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .robot-panel {
+    width: 78px; height: 46px; background: #202a31; border-radius: 10px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px;
+  }
+  .led-row { display: flex; gap: 6px; }
+  .panel-led { width: 7px; height: 7px; border-radius: 50%; }
+  .panel-led.g { background: #57e389; box-shadow: 0 0 6px #57e389; }
+  .panel-led.y { background: #ffd76f; box-shadow: 0 0 6px #ffd76f; }
+  .panel-led.r { background: #ff6b6b; box-shadow: 0 0 6px #ff6b6b; }
+
+  /* SPEECH BUBBLE OVER HEAD */
+  .robot-speech {
+    position: absolute; top: -38px; background: #FFF; color: #0F172A;
+    font-family: 'Baloo 2', cursive; font-weight: 800; font-size: 15px;
+    padding: 6px 16px; border-radius: 18px; border-bottom-left-radius: 2px;
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3); white-space: nowrap; z-index: 30;
+  }
+
+  /* GAME CARD (SAME VISUAL UI AS DESIGN) */
+  .game-card {
+    max-width: 850px; width: 100%; background: rgba(255,255,255,0.12); backdrop-filter: blur(16px);
+    border: 2px solid rgba(255,255,255,0.25); border-radius: 28px; padding: 26px 32px; text-align: center;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.4); position: relative; z-index: 10;
+  }
+  h1 { font-family: 'Baloo 2', cursive; font-size: 32px; margin: 0 0 8px; color: var(--yellow); }
+  p.desc { font-size: 19px; margin-bottom: 16px; color: rgba(255,255,255,0.9); }
+
+  /* CANVAS WIRE MINIGAME */
+  #wireCanvas {
+    background: #0B132B; border: 3px dashed var(--cyan); border-radius: 20px;
+    cursor: crosshair; touch-action: none; margin: 10px auto; display: block;
+    box-shadow: inset 0 0 20px rgba(0,0,0,0.8);
+  }
+
+  /* LED BULB DEMO */
+  .led-display {
+    width: 80px; height: 80px; border-radius: 50%; background: #334155; margin: 12px auto;
+    border: 4px solid rgba(255,255,255,0.3); transition: all 0.3s; display: flex; align-items: center; justify-content: center; font-size: 36px;
+  }
+  .led-display.lit { background: #FF4757; box-shadow: 0 0 60px #FF4757, 0 0 100px #FF4757; transform: scale(1.1); }
+
+  /* SWITCH TOGGLE DEMO */
+  .switch-box {
+    width: 130px; height: 64px; background: #FF4757; border-radius: 999px; margin: 15px auto;
+    cursor: pointer; padding: 4px; transition: background 0.3s; display: flex; align-items: center;
+  }
+  .switch-box.on { background: var(--lime); }
+  .switch-handle { width: 54px; height: 54px; background: #FFF; border-radius: 50%; transition: transform 0.3s; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+  .switch-box.on .switch-handle { transform: translateX(66px); }
+
+  /* BUTTONS & CHOICES */
+  .grid-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin-top: 16px; }
+  .btn {
+    background: rgba(255,255,255,0.18); border: 2px solid rgba(255,255,255,0.3); padding: 14px; border-radius: 18px;
+    color: #FFF; font-family: 'Baloo 2', cursive; font-size: 19px; font-weight: 700; cursor: pointer; transition: 0.2s;
+  }
+  .btn:hover { background: rgba(255,255,255,0.3); transform: translateY(-3px); }
+  .btn.correct { background: var(--lime) !important; color: #000 !important; border-color: #FFF !important; transform: scale(1.05); }
+
+  /* NAV */
+  .nav { position: fixed; bottom: 15px; left: 0; right: 0; display: flex; justify-content: center; gap: 15px; z-index: 50; }
+  .nav-btn { padding: 10px 24px; border-radius: 999px; border: none; background: var(--yellow); color: #000; font-weight: 800; font-size: 16px; cursor: pointer; }
+</style>
+</head>
+<body>
+
+<div class="bg-grid"></div>
+
+<!-- HUD -->
+<div class="hud">
+  <div class="hud-chip">🗺️ <span id="hudMission">Game 1 of 15</span></div>
+  <div class="hud-stars">
+    <div class="star" id="s1">⭐</div><div class="star" id="s2">⭐</div><div class="star" id="s3">⭐</div>
+    <div class="star" id="s4">⭐</div><div class="star" id="s5">⭐</div>
+  </div>
+</div>
+
+<!-- STAGE CONTAINING CUTE SENSOR ROBOT + PLAYABLE GAME CARD -->
+<div class="stage">
+  
+  <!-- CUTE ULTRASONIC SENSOR ROBOT MASCOT (JUST ABOVE QUIZ CARD) -->
+  <div class="robot-mascot-wrapper">
+    <div class="robot-speech" id="boltSay">Let's play!</div>
+    <div class="cute-robot" id="robotAvatar">
+      <div class="robot-antenna">
+        <div class="antenna-ball"></div>
+      </div>
+
+      <div class="robot-head">
+        <div class="ultrasonic">
+          <div class="ultrasonic-cap"></div>
+          <div class="ultrasonic-cap"></div>
+        </div>
+
+        <div class="visor">
+          <div class="robot-eye" id="eyeL"></div>
+          <div class="robot-eye" id="eyeR"></div>
+        </div>
+      </div>
+
+      <div class="robot-body">
+        <div class="robot-panel">
+          <div class="led-row">
+            <div class="panel-led g"></div>
+            <div class="panel-led y"></div>
+            <div class="panel-led r"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAYABLE GAME CARD -->
+  <div class="game-card" id="gameCard"></div>
+
+</div>
+
+<div class="nav">
+  <button class="nav-btn" onclick="prevLevel()">◀ Back</button>
+  <button class="nav-btn" onclick="nextLevel()">Next ▶</button>
+</div>
+
+<script>
+const audio = new (window.AudioContext || window.webkitAudioContext)();
+function sfx(freq, type='triangle') {
+  if(audio.state === 'suspended') audio.resume();
+  const o = audio.createOscillator(), g = audio.createGain();
+  o.type = type; o.frequency.value = freq; o.connect(g); g.connect(audio.destination);
+  g.gain.setValueAtTime(0.3, audio.currentTime); g.gain.exponentialRampToValueAtTime(0.001, audio.currentTime + 0.3);
+  o.start(); o.stop(audio.currentTime + 0.3);
+}
+
+let level = 0;
+const card = document.getElementById('gameCard');
+
+function setRobotExpression(emotion, text) {
+  document.getElementById('boltSay').textContent = text;
+  const avatar = document.getElementById('robotAvatar');
+  const eyeL = document.getElementById('eyeL');
+  const eyeR = document.getElementById('eyeR');
+
+  if (emotion === 'happy') {
+    avatar.style.transform = 'scale(1.15) rotate(6deg)';
+    eyeL.style.background = 'radial-gradient(circle at 38% 32%, #dff7ff, #5fc6e8)';
+    eyeR.style.background = 'radial-gradient(circle at 38% 32%, #dff7ff, #5fc6e8)';
+    setTimeout(() => avatar.style.transform = 'none', 400);
+  } else if (emotion === 'think') {
+    avatar.style.transform = 'translateY(-12px) rotate(-8deg)';
+    eyeL.style.background = '#FFD23F'; eyeR.style.background = '#FFD23F';
+  } else if (emotion === 'sleep') {
+    avatar.style.transform = 'translateY(8px) scale(0.95)';
+    eyeL.style.background = '#475569'; eyeR.style.background = '#475569';
+  } else if (emotion === 'celebrate') {
+    avatar.style.transform = 'scale(1.25) rotate(12deg)';
+    eyeL.style.background = '#7ED957'; eyeR.style.background = '#7ED957';
+  }
+}
+
+// 15 FULL INTERACTIVE GAMES (COMBINING LESSON BIBLE & SECRET INVENTORS LAB DECK)
+function renderLevel() {
+  document.getElementById('hudMission').textContent = `Game ${level + 1} of 15`;
+
+  if (level === 0) {
+    card.innerHTML = `
+      <h1>GAME 1: WAKE UP BOLT!</h1>
+      <p class="desc">Bolt's battery is empty (0%)! Feed him the correct power source!</p>
+      <div class="grid-options">
+        <button class="btn" onclick="feed(false, this)">🍎 Apple</button>
+        <button class="btn" onclick="feed(true, this)">⚡ 9V Battery</button>
+        <button class="btn" onclick="feed(false, this)">🛌 Pillow</button>
+      </div>
+    `;
+    setRobotExpression('sleep', "I need power... Zzz...");
+  } 
+  else if (level === 1) {
+    card.innerHTML = `
+      <h1>GAME 2: FLIP THE LIGHT SWITCH!</h1>
+      <p class="desc">Drag or click the heavy switch to send energy to Bolt's flashlight eye!</p>
+      <div class="led-display" id="ledBulb">💡</div>
+      <div class="switch-box" id="swBox" onclick="toggleSwitch()">
+        <div class="switch-handle"></div>
+      </div>
+    `;
+    setRobotExpression('think', "Flip the switch ON!");
+  }
+  else if (level === 2) {
+    card.innerHTML = `
+      <h1>GAME 3: WIRE HIGHWAY BUILDER!</h1>
+      <p class="desc">DRAG YOUR FINGER/MOUSE from Battery 🔋 to LED Light 💡 to complete the circuit!</p>
+      <canvas id="wireCanvas" width="550" height="200"></canvas>
+      <div id="statusText" style="font-weight:bold; color:var(--yellow); margin-top:8px;">Status: Connect Battery (Left) to Light (Right)!</div>
+    `;
+    setRobotExpression('think', "Draw a wire across!");
+    setTimeout(initCanvasGame, 50);
+  }
+  else if (level === 3) {
+    card.innerHTML = `
+      <h1>GAME 4: ROBOT DETECTIVE QUIZ!</h1>
+      <p class="desc">What component acts as the robot's power lunchbox?</p>
+      <div class="grid-options">
+        <button class="btn" onclick="quiz(true, this)">🔋 Battery</button>
+        <button class="btn" onclick="quiz(false, this)">💡 LED Light</button>
+        <button class="btn" onclick="quiz(false, this)">🔌 Wire</button>
+      </div>
+    `;
+    setRobotExpression('think', "Pick the lunchbox!");
+  }
+  else if (level === 4) {
+    card.innerHTML = `
+      <h1>GAME 5: SPOT THE HIDDEN ROBOT!</h1>
+      <p class="desc">Where is the Factory Robot Arm hiding in the room?</p>
+      <div class="grid-options">
+        <button class="btn" onclick="spot(false, this)">🧸 Teddy Bear</button>
+        <button class="btn" onclick="spot(true, this)">🦾 Factory Robot Arm</button>
+        <button class="btn" onclick="spot(false, this)">🪴 House Plant</button>
+      </div>
+    `;
+    setRobotExpression('think', "Where is the Robot Arm?");
+  }
+  else if (level === 5) {
+    card.innerHTML = `
+      <h1>GAME 6: 10-SECOND REACTION TEST!</h1>
+      <p class="desc">Quick! Is a RC Drone a Robot?</p>
+      <div class="grid-options">
+        <button class="btn" onclick="reaction(true, this)">🚁 DRONE (ROBOT!)</button>
+        <button class="btn" onclick="reaction(false, this)">🐶 PUPPY (NOT!)</button>
+      </div>
+    `;
+    setRobotExpression('happy', "Quick! Robot or Not?");
+  }
+  else if (level === 6) {
+    card.innerHTML = `
+      <h1>GAME 7: FLASHLIGHT EYE COLOR PICKER!</h1>
+      <p class="desc">Tap a magic color button to switch Bolt's eye glow!</p>
+      <div class="grid-options">
+        <button class="btn" onclick="changeEyeColor('#FF4757', this)">🔴 Red Eye</button>
+        <button class="btn" onclick="changeEyeColor('#7ED957', this)">🟢 Green Eye</button>
+        <button class="btn" onclick="changeEyeColor('#3FE0FF', this)">🔵 Blue Eye</button>
+        <button class="btn" onclick="changeEyeColor('#FFD23F', this)">🟡 Yellow Eye</button>
+      </div>
+    `;
+    setRobotExpression('happy', "Pick my eye glow!");
+  }
+  else if (level === 7) {
+    card.innerHTML = `
+      <h1>GAME 8: BREADBOARD LEGO BASE MATCH!</h1>
+      <p class="desc">Where do circuit pieces snap into place like LEGO blocks?</p>
+      <div class="grid-options">
+        <button class="btn" onclick="breadboard(true, this)">🧱 Green Breadboard</button>
+        <button class="btn" onclick="breadboard(false, this)">🍞 Loaf of Bread</button>
+      </div>
+    `;
+    setRobotExpression('think', "Snap it on like LEGO!");
+  }
+  else if (level === 8) {
+    card.innerHTML = `
+      <h1>GAME 9: MYSTERY COMPONENT REVEAL!</h1>
+      <p class="desc">Super zoomed in! What component has 2 metal legs and glows red?</p>
+      <div class="grid-options">
+        <button class="btn" onclick="mystery(true, this)">💡 LED Light Bulb</button>
+        <button class="btn" onclick="mystery(false, this)">🔋 Heavy Battery</button>
+      </div>
+    `;
+    setRobotExpression('think', "Super zoomed in! Guess!");
+  }
+  else if (level === 9) {
+    card.innerHTML = `
+      <h1>GAME 10: CHIEF INVENTOR COMMAND CONSOLE!</h1>
+      <p class="desc">Command Bolt's robot body! Give him a command!</p>
+      <div class="grid-options">
+        <button class="btn" onclick="commandBot('rotate')">🔄 ROTATE BOT!</button>
+        <button class="btn" onclick="commandBot('jump')">🚀 JUMP BOT!</button>
+        <button class="btn" onclick="commandBot('dance')">🕺 DANCE BOT!</button>
+      </div>
+    `;
+    setRobotExpression('happy', "Give me orders, Chief!");
+  }
+  else if (level === 10) {
+    card.innerHTML = `
+      <h1>GAME 11: SCAVENGER HUNT RED VS GREEN!</h1>
+      <p class="desc">Which traffic LED light tells cars to GO?</p>
+      <div class="grid-options">
+        <button class="btn" onclick="scavenger(false, this)">🔴 RED LED (STOP)</button>
+        <button class="btn" onclick="scavenger(true, this)">🟢 GREEN LED (GO)</button>
+      </div>
+    `;
+    setRobotExpression('think', "Which light means GO?");
+  }
+  else if (level === 11) {
+    card.innerHTML = `
+      <h1>GAME 12: ROBOT HELPER MATCH!</h1>
+      <p class="desc">What job would your robot helper do at home first?</p>
+      <div class="grid-options">
+        <button class="btn" onclick="helperChoice('🧹 Clean Room')">🧹 Clean Room</button>
+        <button class="btn" onclick="helperChoice('🧸 Pick Up Toys')">🧸 Pick Up Toys</button>
+        <button class="btn" onclick="helperChoice('🥞 Make Pancakes')">🥞 Make Pancakes</button>
+      </div>
+    `;
+    setRobotExpression('happy', "I want to make pancakes!");
+  }
+  else if (level === 12) {
+    card.innerHTML = `
+      <h1>GAME 13: THE 5-STAR FINAL RECAP!</h1>
+      <p class="desc">Question: What is a Robot?</p>
+      <div class="grid-options">
+        <button class="btn" onclick="recap(true, this)">🛠️ A Machine That Does Jobs!</button>
+        <button class="btn" onclick="recap(false, this)">😴 A Toy That Sleeps All Day</button>
+      </div>
+    `;
+    setRobotExpression('think', "What is a robot?");
+  }
+  else if (level === 13) {
+    card.innerHTML = `
+      <h1>GAME 14: HOME DETECTIVE CHALLENGE!</h1>
+      <p class="desc">Spot a household robot helper appliance!</p>
+      <div class="grid-options">
+        <button class="btn" onclick="homeHelper(true, this)">🧺 Washing Machine</button>
+        <button class="btn" onclick="homeHelper(true, this)">🧹 Vacuum Cleaner</button>
+        <button class="btn" onclick="homeHelper(true, this)">🧼 Soap Dispenser</button>
+      </div>
+    `;
+    setRobotExpression('happy', "Find helpers at home!");
+  }
+  else if (level === 14) {
+    card.innerHTML = `
+      <h1>🏆 GAME 15: GRAND GRADUATION CEREMONY!</h1>
+      <p class="desc">YOU UNLOCKED ALL 5 STARS & THE JUNIOR ROBOT EXPLORER CERTIFICATE!</p>
+      <div style="font-size:70px; margin:15px 0;">📜🏅⭐</div>
+      <button class="btn" style="background:var(--lime); color:#000;" onclick="confetti()">🎉 GRAND CELEBRATION!</button>
+    `;
+    setRobotExpression('celebrate', "YOU ARE AN INVENTOR!");
+    confetti();
+    sfx(523); setTimeout(()=>sfx(659), 100); setTimeout(()=>sfx(783), 200);
+  }
+}
+
+// GAME HANDLERS
+function feed(isBattery, btn) {
+  if (isBattery) {
+    btn.classList.add('correct');
+    sfx(600); sfx(800); confetti();
+    setRobotExpression('happy', "⚡ CHARGED 100%!");
+    document.getElementById('s1').classList.add('on');
+  } else {
+    sfx(180, 'sawtooth');
+    setRobotExpression('sleep', "❌ I can't eat that!");
+    alert("❌ Bolt cannot eat that! Feed him the ⚡ 9V Battery!");
+  }
+}
+
+function toggleSwitch() {
+  const sw = document.getElementById('swBox');
+  const led = document.getElementById('ledBulb');
+  sw.classList.toggle('on');
+  if (sw.classList.contains('on')) {
+    led.classList.add('lit');
+    sfx(880); confetti();
+    setRobotExpression('celebrate', "💡 IT LIT UP!");
+    document.getElementById('s2').classList.add('on');
+  } else {
+    led.classList.remove('lit');
+    sfx(300);
+    setRobotExpression('think', "Lights OFF!");
+  }
+}
+
+function initCanvasGame() {
+  const cvs = document.getElementById('wireCanvas');
+  if(!cvs) return;
+  const ctx = cvs.getContext('2d');
+  let drawing = false, connected = false;
+
+  function drawTargets() {
+    ctx.clearRect(0, 0, 550, 200);
+    ctx.fillStyle = '#FF8C42'; ctx.beginPath(); ctx.arc(60, 100, 35, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#FFF'; ctx.font = '22px Fredoka'; ctx.fillText('🔋 9V', 35, 107);
+
+    ctx.fillStyle = connected ? '#7ED957' : '#334155'; ctx.beginPath(); ctx.arc(490, 100, 35, 0, Math.PI*2); ctx.fill();
+    ctx.fillStyle = '#FFF'; ctx.fillText('💡 LED', 460, 107);
+  }
+  drawTargets();
+
+  let lastX = 60, lastY = 100;
+  cvs.onpointerdown = (e) => {
+    const rect = cvs.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+    if (Math.hypot(x - 60, y - 100) < 40) { drawing = true; lastX = x; lastY = y; }
+  };
+
+  cvs.onpointermove = (e) => {
+    if (!drawing || connected) return;
+    const rect = cvs.getBoundingClientRect();
+    const x = e.clientX - rect.left, y = e.clientY - rect.top;
+
+    ctx.strokeStyle = '#FFD23F'; ctx.lineWidth = 8; ctx.lineCap = 'round';
+    ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(x, y); ctx.stroke();
+    lastX = x; lastY = y;
+
+    if (Math.hypot(x - 490, y - 100) < 40) {
+      drawing = false; connected = true; drawTargets();
+      sfx(880); confetti();
+      document.getElementById('statusText').textContent = "✅ CIRCUIT COMPLETE! POWER FLOWING!";
+      setRobotExpression('celebrate', "⚡ WIRE CONNECTED!");
+      document.getElementById('s3').classList.add('on');
+    }
+  };
+
+  cvs.onpointerup = () => drawing = false;
+}
+
+function quiz(correct, btn) {
+  if (correct) {
+    btn.classList.add('correct'); sfx(700); confetti();
+    setRobotExpression('happy', "✅ BINGO!"); document.getElementById('s4').classList.add('on');
+  } else { sfx(200, 'sawtooth'); setRobotExpression('think', "❌ Try again!"); }
+}
+
+function spot(correct, btn) {
+  if (correct) { btn.classList.add('correct'); sfx(700); confetti(); setRobotExpression('happy', "🦾 FOUND THE ROBOT ARM!"); }
+  else { sfx(200, 'sawtooth'); }
+}
+
+function reaction(correct, btn) {
+  if (correct) { btn.classList.add('correct'); sfx(800); confetti(); setRobotExpression('celebrate', "🚁 YES! DRONES ARE ROBOTS!"); }
+  else { sfx(200, 'sawtooth'); }
+}
+
+function changeEyeColor(color, btn) {
+  btn.classList.add('correct'); sfx(750); confetti();
+  document.getElementById('eyeL').style.background = color;
+  document.getElementById('eyeR').style.background = color;
+  setRobotExpression('happy', "🎨 COOL EYE COLOR!");
+}
+
+function breadboard(correct, btn) {
+  if (correct) { btn.classList.add('correct'); sfx(700); confetti(); setRobotExpression('happy', "🧱 YES! BREADBOARD!"); }
+  else { sfx(200, 'sawtooth'); }
+}
+
+function mystery(correct, btn) {
+  if (correct) { btn.classList.add('correct'); sfx(800); confetti(); setRobotExpression('celebrate', "💡 YES! IT'S AN LED BULB!"); }
+  else { sfx(200, 'sawtooth'); }
+}
+
+function commandBot(cmd) {
+  const avatar = document.getElementById('robotAvatar');
+  sfx(650);
+  if (cmd === 'rotate') avatar.style.transform = 'rotate(360deg)';
+  else if (cmd === 'jump') avatar.style.transform = 'translateY(-30px)';
+  else if (cmd === 'dance') avatar.style.transform = 'scale(1.2) rotate(15deg)';
+  setRobotExpression('happy', `🤖 COMMAND: ${cmd.toUpperCase()}!`);
+  setTimeout(() => avatar.style.transform = 'none', 600);
+}
+
+function scavenger(correct, btn) {
+  if (correct) { btn.classList.add('correct'); sfx(800); confetti(); setRobotExpression('celebrate', "🟢 GREEN MEANS GO!"); }
+  else { sfx(200, 'sawtooth'); }
+}
+
+function helperChoice(job) {
+  sfx(700); confetti(); setRobotExpression('happy', `🤖 HELPER ASSIGNED: ${job}!`);
+}
+
+function recap(correct, btn) {
+  if (correct) { btn.classList.add('correct'); sfx(900); confetti(); setRobotExpression('celebrate', "🏆 YOU ARE A ROBOTICS HERO!"); document.getElementById('s5').classList.add('on'); }
+  else { sfx(200, 'sawtooth'); }
+}
+
+function homeHelper(correct, btn) {
+  btn.classList.add('correct'); sfx(750); confetti(); setRobotExpression('happy', "🏠 DETECTIVE BADGE EARNED!");
+}
+
+function nextLevel() { if (level < 14) { level++; renderLevel(); } }
+function prevLevel() { if (level > 0) { level--; renderLevel(); } }
+
+renderLevel();
+</script>
+</body>
+</html>

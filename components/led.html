@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><title>LED Component</title>
+<style>
+  body { margin:0; padding:40px; background:#0F172A; text-align:center; }
+  .led-bulb { width: 80px; height: 80px; border-radius: 50%; background: #334155; margin: 0 auto; cursor: pointer; transition: all 0.3s; }
+  .led-bulb.lit { background: #FFD23F; box-shadow: 0 0 50px #FFD23F; }
+</style>
+</head>
+<body>
+<div class="led-bulb" onclick="this.classList.toggle('lit')"></div>
+</body>
+</html>
