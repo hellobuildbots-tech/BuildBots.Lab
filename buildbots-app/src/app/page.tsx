@@ -190,34 +190,6 @@ export default function DirectPortalPage() {
               <ArrowRight className="w-4 h-4" />
             </button>
           </form>
-
-          {/* QUICK DEMO ACCOUNTS PRESETS */}
-          <div className="mt-8 pt-6 border-t border-slate-800 text-center">
-            <p className="text-xs font-bold text-slate-400 mb-3">Quick Demo Logins:</p>
-            <div className="flex flex-wrap gap-2 justify-center">
-              <button
-                type="button"
-                onClick={() => selectQuickAccount('mivaan@buildbots.ai', 'Mivaan@2026', 'student')}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-cyan-300 font-bold hover:bg-slate-700 transition-colors"
-              >
-                Mivaan (Student)
-              </button>
-              <button
-                type="button"
-                onClick={() => selectQuickAccount('tashvi@buildbots.ai', 'Tashvi@2026', 'student')}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-cyan-300 font-bold hover:bg-slate-700 transition-colors"
-              >
-                Tashvi (Student)
-              </button>
-              <button
-                type="button"
-                onClick={() => selectQuickAccount('nandini@buildbots.com', 'onedirection', 'teacher')}
-                className="px-3 py-1.5 rounded-lg bg-slate-800 text-xs text-emerald-300 font-bold hover:bg-slate-700 transition-colors"
-              >
-                Nandini (Teacher)
-              </button>
-            </div>
-          </div>
         </div>
       </div>
     </div>
