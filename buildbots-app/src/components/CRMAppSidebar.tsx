@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { 
   Home, Users, BookOpen, Calendar, CheckSquare, 
-  FileText, Award, BarChart2, MessageSquare, Settings, Shield
+  FileText, Award, BarChart2, MessageSquare, Settings, Shield, Video
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -17,6 +17,7 @@ export function CRMAppSidebar({ role = 'teacher' }: SidebarProps) {
 
   const teacherNav = [
     { label: 'Dashboard', href: '/teacher', icon: Home },
+    { label: 'Create Google Meet', href: '/teacher/create-meet', icon: Video },
     { label: 'Students CRM', href: '/teacher/students', icon: Users },
     { label: 'Lessons Library', href: '/teacher/lessons', icon: BookOpen },
     { label: 'Classes Schedule', href: '/teacher/classes', icon: Calendar },

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { CRMAppSidebar } from '@/components/CRMAppSidebar';
 import { 
   Users, BookOpen, Calendar, CheckSquare, Award, 
-  BarChart2, Play, PlusCircle, ArrowUpRight, Sparkles, Clock, CheckCircle2 
+  BarChart2, Play, PlusCircle, ArrowUpRight, Sparkles, Clock, CheckCircle2, Video 
 } from 'lucide-react';
 
 export default function TeacherOSDashboardPage() {
@@ -22,6 +22,10 @@ export default function TeacherOSDashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link href="/teacher/create-meet" className="px-4 py-2.5 rounded-full font-bold text-xs bg-slate-800 border border-slate-700 text-slate-200 hover:border-cyan-400 hover:text-white flex items-center gap-2 transition-all">
+              <Video className="w-4 h-4 text-cyan-400" /> Create Google Meet & Draft
+            </Link>
+
             <Link href="/teacher/session" className="px-5 py-2.5 rounded-full font-extrabold text-xs bg-gradient-to-r from-cyan-400 to-emerald-400 text-slate-950 hover:shadow-lg hover:shadow-cyan-500/25 flex items-center gap-2 transition-all">
               <Play className="w-4 h-4 fill-slate-950" /> Launch Class Session
             </Link>
