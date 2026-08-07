@@ -94,6 +94,9 @@ export default function DirectPortalPage() {
       <div className="w-full max-w-md relative z-10">
         {/* LOGO & HEADING */}
         <div className="text-center mb-8">
+          <div className="flex justify-center mb-3">
+            <img src="/no_bg_logo.png" alt="BuildBots AI Logo" className="h-16 w-auto drop-shadow-[0_0_20px_rgba(77,216,255,0.4)]" />
+          </div>
           <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-300 text-xs font-extrabold uppercase tracking-wider mb-4">
             <Sparkles className="w-4 h-4" /> BuildBots AI Portal
           </div>
