@@ -16,7 +16,13 @@ export const metadata: Metadata = {
   title: "BuildBots AI — Next-Gen Robotics Academy",
   description: "Interactive robotics CRM, game lessons, and student progress tracking for ages 7–14.",
   icons: {
-    icon: "/no_bg_logo.png",
+    icon: [
+      { url: "/favicon.ico" },
+      { url: "/favicon.png", type: "image/png" },
+      { url: "/no_bg_logo.png", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico",
+    apple: "/no_bg_logo.png",
   },
 };
 
