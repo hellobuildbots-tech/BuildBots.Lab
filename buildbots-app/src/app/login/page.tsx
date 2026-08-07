@@ -18,30 +18,48 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    const cleanEmail = email.trim().toLowerCase();
+
     // 👩‍🏫 INSTRUCTOR AUTHENTICATION
-    if (email === 'nandini@buildbots.com' && password === 'onedirection') {
+    if (cleanEmail === 'nandini@buildbots.com' && password === 'onedirection') {
       router.push('/teacher');
       return;
     }
 
-    // 🎓 STUDENT AUTHENTICATION (MIVAAN & TASHVI)
+    // 🎓 REAL STUDENT AUTHENTICATION (MIVAAN & TASHVI)
     if (
-      (email === 'mivaan@buildbots.ai' && password === 'Mivaan@2026') ||
-      (email === 'tashvi@buildbots.ai' && password === 'Tashvi@2026')
+      (cleanEmail === 'mivaan@buildbots.ai' && password === 'Mivaan@2026') ||
+      (cleanEmail === 'tashvi@buildbots.ai' && password === 'Tashvi@2026')
     ) {
       router.push('/dashboard');
+      return;
+    }
+
+    // 🧪 TEST ACCOUNT AUTHENTICATION (FOR TESTING FUNCTIONALITY)
+    if (cleanEmail === 'teststudent@buildbots.ai' && password === 'test1234') {
+      router.push('/dashboard');
+      return;
+    }
+
+    if (cleanEmail === 'testparent@buildbots.ai' && password === 'test1234') {
+      router.push('/parent');
+      return;
+    }
+
+    if (cleanEmail === 'testteacher@buildbots.ai' && password === 'test1234') {
+      router.push('/teacher');
       return;
     }
 
     // Live Supabase Authentication
     try {
       const { data, error: authError } = await supabase.auth.signInWithPassword({
-        email,
+        email: cleanEmail,
         password,
       });
 
       if (authError) {
-        setError("Invalid login credentials. Please check your email and password.");
+        setError("Invalid credentials. Check email and password.");
         setLoading(false);
       } else {
         const user = data.user;
@@ -55,7 +73,7 @@ export default function LoginPage() {
         }
       }
     } catch (err) {
-      setError("An unexpected authentication error occurred.");
+      setError("An authentication error occurred.");
       setLoading(false);
     }
   };
@@ -69,7 +87,7 @@ export default function LoginPage() {
             <span className="font-extrabold text-2xl tracking-tight">BuildBots<span className="text-cyan-400">.AI</span></span>
           </Link>
           <h1 className="text-2xl font-extrabold">Student & Teacher Portal</h1>
-          <p className="text-slate-400 text-sm mt-1">Log in to start Today's First Robotics Class.</p>
+          <p className="text-slate-400 text-sm mt-1">Sign in with your assigned email and password.</p>
         </div>
 
         {error && (
