@@ -1,0 +1,1055 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Meet Byte — BuildBots</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg-deep:#0a1120;
+    --bg-panel:#101b30;
+    --bg-panel-2:#16233c;
+    --accent-cyan:#4fd1ff;
+    --accent-cyan-dim:rgba(79,209,255,.18);
+    --accent-amber:#ffd76f;
+    --accent-green:#57e389;
+    --accent-coral:#ff8a65;
+    --accent-red:#ff6b6b;
+    --ink:#eaf3fb;
+    --ink-dim:#9fb4c9;
+    --radius-lg:26px;
+    --radius-md:18px;
+    --radius-sm:12px;
+    --font-display:'Baloo 2', system-ui, sans-serif;
+    --font-body:'Nunito', system-ui, sans-serif;
+  }
+
+  *{box-sizing:border-box;}
+  html,body{
+    margin:0; padding:0; height:100%;
+    background:
+      radial-gradient(1100px 700px at 20% -10%, #14233f 0%, transparent 60%),
+      radial-gradient(900px 600px at 100% 110%, #17263f 0%, transparent 55%),
+      var(--bg-deep);
+    color:var(--ink);
+    font-family:var(--font-body);
+    overflow-x:hidden;
+  }
+  button{font-family:inherit;}
+  h1,h2,h3{font-family:var(--font-display); margin:0;}
+
+  a:focus-visible, button:focus-visible, [tabindex]:focus-visible{
+    outline:3px solid var(--accent-amber);
+    outline-offset:3px;
+    border-radius:10px;
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+  }
+  body.reduce-motion *{ animation-duration:.001ms !important; animation-iteration-count:1 !important; transition-duration:.001ms !important; }
+
+  #particles{
+    position:fixed; inset:0; pointer-events:none; z-index:0; overflow:hidden;
+  }
+  .particle{
+    position:absolute; bottom:-20px; border-radius:50%;
+    background:var(--accent-cyan); opacity:.35; filter:blur(.3px);
+    animation:drift linear infinite;
+  }
+  @keyframes drift{
+    0%{ transform:translateY(0) translateX(0); opacity:0; }
+    10%{ opacity:.5; }
+    90%{ opacity:.35; }
+    100%{ transform:translateY(-110vh) translateX(var(--dx,20px)); opacity:0; }
+  }
+
+  #app{
+    position:relative; z-index:1;
+    min-height:100%;
+    display:flex; flex-direction:column; align-items:center;
+    padding:18px 16px 28px;
+  }
+
+  .topbar{
+    width:100%; max-width:920px;
+    display:flex; align-items:center; justify-content:space-between;
+    gap:12px; margin-bottom:10px;
+  }
+  .brand{
+    display:flex; align-items:center; gap:8px;
+    font-family:var(--font-display); font-weight:700; letter-spacing:.02em;
+    color:var(--ink); font-size:15px; text-transform:uppercase; opacity:.75;
+  }
+  .brand .dot{ width:8px; height:8px; border-radius:50%; background:var(--accent-cyan); box-shadow:0 0 8px var(--accent-cyan); }
+
+  .icon-btn{
+    width:42px; height:42px; border-radius:50%;
+    background:var(--bg-panel-2); border:1px solid rgba(255,255,255,.08);
+    color:var(--ink); font-size:18px; cursor:pointer;
+    display:flex; align-items:center; justify-content:center;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .icon-btn:hover{ transform:scale(1.06); background:#1c2c4a; }
+  .icon-btn:active{ transform:scale(.94); }
+
+  .progress-wrap{
+    width:100%; max-width:920px; margin:2px 0 14px;
+    display:flex; flex-direction:column; align-items:center; gap:6px;
+  }
+  .progress-label{
+    font-family:var(--font-display); font-size:12px; letter-spacing:.14em;
+    color:var(--ink-dim); text-transform:uppercase;
+  }
+  .progress-dots{ display:flex; gap:7px; }
+  .progress-dots span{
+    width:9px; height:9px; border-radius:50%;
+    background:rgba(255,255,255,.14);
+    transition:background .25s ease, transform .25s ease;
+  }
+  .progress-dots span.done{ background:var(--accent-cyan); box-shadow:0 0 6px var(--accent-cyan); }
+  .progress-dots span.current{ background:var(--accent-amber); transform:scale(1.3); box-shadow:0 0 8px var(--accent-amber); }
+
+  main#scene-root{
+    width:100%; max-width:920px; flex:1;
+    display:flex; flex-direction:column; align-items:center;
+  }
+
+  .scene-card{
+    width:100%;
+    background:linear-gradient(180deg, var(--bg-panel) 0%, var(--bg-panel-2) 100%);
+    border:1px solid rgba(255,255,255,.06);
+    border-radius:var(--radius-lg);
+    padding:clamp(20px,4vw,40px);
+    box-shadow:0 20px 60px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.04);
+    display:flex; flex-direction:column; align-items:center; gap:18px;
+    animation:scene-in .5s ease both;
+  }
+  @keyframes scene-in{
+    from{ opacity:0; transform:translateY(14px) scale(.985); }
+    to{ opacity:1; transform:translateY(0) scale(1); }
+  }
+
+  .kicker{
+    font-family:var(--font-display); font-size:12px; letter-spacing:.16em;
+    color:var(--accent-cyan); text-transform:uppercase;
+  }
+  .scene-title{
+    font-size:clamp(24px,4.4vw,36px); text-align:center; line-height:1.15;
+  }
+  .scene-body{
+    max-width:560px; text-align:center; color:var(--ink-dim);
+    font-size:clamp(15px,2.4vw,18px); line-height:1.55;
+  }
+  .scene-body strong{ color:var(--ink); }
+
+  .byte-stage{
+    position:relative;
+    width:min(340px, 78vw);
+    height:min(340px, 78vw);
+    display:flex; align-items:center; justify-content:center;
+    margin:4px 0;
+  }
+  .radar-ring{
+    position:absolute; border-radius:50%;
+    border:1px solid var(--accent-cyan-dim);
+  }
+  .radar-ring.r1{ inset:6%; }
+  .radar-ring.r2{ inset:20%; }
+  .radar-ring.r3{ inset:34%; }
+  .radar-sweep{
+    position:absolute; inset:6%; border-radius:50%;
+    background:conic-gradient(from 0deg, rgba(79,209,255,.30), transparent 26%);
+    animation:sweep 5.2s linear infinite;
+    -webkit-mask-image:radial-gradient(circle, black 60%, transparent 61%);
+            mask-image:radial-gradient(circle, black 60%, transparent 61%);
+  }
+  @keyframes sweep{ to{ transform:rotate(360deg); } }
+
+  .byte-wrap{ position:relative; transform:scale(0.86); }
+
+  .speech{
+    position:absolute; top:-6px; left:50%; transform:translate(-50%,-100%);
+    background:var(--ink); color:#0b1220; font-family:var(--font-display);
+    font-size:14px; font-weight:700; padding:8px 14px; border-radius:14px;
+    white-space:nowrap; opacity:0; pointer-events:none;
+    transition:opacity .2s ease, transform .2s ease;
+    box-shadow:0 6px 16px rgba(0,0,0,.3);
+  }
+  .speech::after{
+    content:""; position:absolute; bottom:-7px; left:50%; transform:translateX(-50%);
+    border-width:7px 7px 0 7px; border-style:solid;
+    border-color:var(--ink) transparent transparent transparent;
+  }
+  .speech.show{ opacity:1; transform:translate(-50%,-118%); }
+
+  .tap-target{
+    position:absolute; background:transparent; border:none; cursor:pointer;
+    border-radius:50%;
+  }
+  .tap-target:focus-visible{ outline:3px solid var(--accent-amber); outline-offset:2px; }
+  .tap-hint{
+    position:absolute; border-radius:50%;
+    box-shadow:0 0 0 0 rgba(79,209,255,.55);
+    animation:tap-pulse 1.6s ease-out infinite;
+    pointer-events:none;
+  }
+  @keyframes tap-pulse{
+    0%{ box-shadow:0 0 0 0 rgba(79,209,255,.55); }
+    70%{ box-shadow:0 0 0 16px rgba(79,209,255,0); }
+    100%{ box-shadow:0 0 0 0 rgba(79,209,255,0); }
+  }
+
+  .controls{
+    display:flex; flex-wrap:wrap; gap:12px; justify-content:center; width:100%;
+  }
+  .btn{
+    font-family:var(--font-display); font-weight:600; font-size:16px;
+    padding:13px 26px; border-radius:999px; cursor:pointer;
+    border:1px solid rgba(255,255,255,.10);
+    background:var(--bg-panel-2); color:var(--ink);
+    transition:transform .15s ease, background .15s ease, box-shadow .15s ease;
+    min-height:48px;
+  }
+  .btn:hover{ transform:translateY(-2px); }
+  .btn:active{ transform:translateY(0) scale(.98); }
+  .btn.primary{
+    background:linear-gradient(135deg, var(--accent-cyan), #2fa8d6);
+    color:#04202b; border:none; box-shadow:0 8px 20px rgba(79,209,255,.28);
+  }
+  .btn.primary:hover{ box-shadow:0 10px 26px rgba(79,209,255,.4); }
+  .btn.ghost{ background:transparent; color:var(--ink-dim); border-color:rgba(255,255,255,.14); }
+  .btn:disabled{ opacity:.35; cursor:not-allowed; transform:none; }
+  .btn.correct{ background:linear-gradient(135deg, var(--accent-green), #2fae62); color:#052e14; border:none; }
+  .btn.wrong{ background:linear-gradient(135deg, var(--accent-coral), #d65c3c); color:#340f04; border:none; }
+
+  .nav-row{
+    width:100%; max-width:920px; display:flex; justify-content:space-between;
+    align-items:center; margin-top:16px; gap:12px;
+  }
+
+  .card-grid{
+    display:grid; gap:12px; width:100%;
+    grid-template-columns:repeat(auto-fit, minmax(150px,1fr));
+  }
+  .flip-card{
+    perspective:900px; height:150px; cursor:pointer;
+  }
+  .flip-card-inner{
+    position:relative; width:100%; height:100%; transition:transform .5s;
+    transform-style:preserve-3d;
+  }
+  .flip-card.flipped .flip-card-inner{ transform:rotateY(180deg); }
+  .flip-face{
+    position:absolute; inset:0; backface-visibility:hidden;
+    border-radius:var(--radius-md); display:flex; flex-direction:column;
+    align-items:center; justify-content:center; gap:6px; padding:10px; text-align:center;
+    border:1px solid rgba(255,255,255,.08);
+  }
+  .flip-front{ background:var(--bg-panel-2); }
+  .flip-front .emoji{ font-size:30px; }
+  .flip-front .label{ font-family:var(--font-display); font-size:15px; }
+  .flip-back{
+    background:linear-gradient(135deg, #163449, #0e2635);
+    transform:rotateY(180deg); font-size:13.5px; color:var(--ink-dim); line-height:1.4;
+  }
+
+  .rule-row{
+    display:flex; flex-direction:column; gap:10px; width:100%; max-width:520px;
+  }
+  .rule-item{
+    display:flex; align-items:center; gap:14px;
+    background:var(--bg-panel-2); border:1px solid rgba(255,255,255,.08);
+    border-radius:var(--radius-md); padding:12px 16px; cursor:pointer;
+    opacity:.55; transition:opacity .3s ease, background .2s ease;
+  }
+  .rule-item.revealed{ opacity:1; background:#16273f; }
+  .rule-num{
+    flex:0 0 auto; width:32px; height:32px; border-radius:50%;
+    background:var(--accent-cyan-dim); color:var(--accent-cyan);
+    display:flex; align-items:center; justify-content:center;
+    font-family:var(--font-display); font-weight:700;
+  }
+  .rule-text{ font-weight:700; font-size:15px; }
+  .rule-text small{ display:block; font-weight:500; color:var(--ink-dim); font-size:12.5px; margin-top:2px; }
+
+  .part-grid{ display:flex; gap:14px; flex-wrap:wrap; justify-content:center; }
+  .part-btn{
+    width:104px; height:104px; border-radius:var(--radius-md);
+    background:var(--bg-panel-2); border:1px solid rgba(255,255,255,.1);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    gap:6px; cursor:pointer; font-size:34px;
+    transition:transform .15s ease, background .15s ease;
+  }
+  .part-btn:hover{ transform:translateY(-3px); }
+  .part-btn span.name{ font-family:var(--font-body); font-weight:700; font-size:11.5px; color:var(--ink-dim); }
+  .part-btn.correct-flash{ background:linear-gradient(135deg,var(--accent-green),#2fae62); }
+  .part-btn.wrong-flash{ animation:shake .4s ease; background:linear-gradient(135deg,var(--accent-coral),#d65c3c); }
+  @keyframes shake{
+    0%,100%{ transform:translateX(0); } 25%{ transform:translateX(-6px); } 75%{ transform:translateX(6px); }
+  }
+
+  .sr-only{
+    position:absolute; width:1px; height:1px; padding:0; margin:-1px;
+    overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0;
+  }
+
+  .badge{
+    width:150px; height:150px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #fff3cf, var(--accent-amber) 55%, #c99a2e 100%);
+    display:flex; align-items:center; justify-content:center; font-size:56px;
+    box-shadow:0 0 0 8px rgba(255,215,111,.15), 0 12px 30px rgba(255,215,111,.35);
+    animation:badge-pop .6s cubic-bezier(.34,1.56,.64,1) both;
+  }
+  @keyframes badge-pop{ from{ transform:scale(0) rotate(-25deg); opacity:0; } to{ transform:scale(1) rotate(0); opacity:1; } }
+
+  #confetti-layer{ position:fixed; inset:0; pointer-events:none; z-index:50; overflow:hidden; }
+  .confetto{
+    position:absolute; top:-16px; width:9px; height:14px; opacity:.9;
+    animation:confetti-fall linear forwards;
+  }
+  @keyframes confetti-fall{
+    to{ transform:translateY(110vh) rotate(540deg); opacity:.2; }
+  }
+
+  .robot-stage{ width:340px; height:400px; position:relative; }
+  .robot{
+    position:absolute; left:50%; top:50%; transform:translate(-50%,-50%);
+    display:flex; flex-direction:column; align-items:center;
+    animation:float 3.4s ease-in-out infinite;
+  }
+  @keyframes float{
+    0%,100%{ transform:translate(-50%,-50%) translateY(0px); }
+    50%{ transform:translate(-50%,-50%) translateY(-10px); }
+  }
+  .antenna{ width:5px; height:26px; background:linear-gradient(180deg,#aab4bb,#7c8790); border-radius:3px; position:relative; }
+  .antenna-ball{
+    width:13px; height:13px; background:#4fd1ff; border-radius:50%; position:absolute;
+    top:-10px; left:50%; transform:translateX(-50%);
+    box-shadow:0 0 10px 2px rgba(79,209,255,.75);
+    animation:blink-light 1.8s ease-in-out infinite;
+  }
+  @keyframes blink-light{ 0%,100%{ opacity:1; } 50%{ opacity:.35; } }
+  .head{
+    width:168px; height:128px;
+    background:linear-gradient(155deg,#f1f4f6 0%,#cfd8dd 55%,#b7c2c8 100%);
+    border-radius:26px; border:3px solid #97a3aa; position:relative; margin-top:4px;
+    box-shadow:inset 0 -10px 16px rgba(0,0,0,.06), 0 3px 6px rgba(0,0,0,.08);
+  }
+  .screw{
+    width:6px; height:6px; border-radius:50%;
+    background:radial-gradient(circle at 35% 35%, #dfe5e8, #8a97a0 70%);
+    position:absolute; box-shadow:inset 0 0 1px rgba(0,0,0,.4);
+  }
+  .screw.tl{ top:8px; left:8px; } .screw.tr{ top:8px; right:8px; }
+  .screw.bl{ bottom:8px; left:8px; } .screw.br{ bottom:8px; right:8px; }
+  .ultrasonic{ position:absolute; top:-9px; left:50%; transform:translateX(-50%); display:flex; gap:8px; z-index:2; }
+  .ultrasonic-cap{
+    width:20px; height:20px; border-radius:50%;
+    background:radial-gradient(circle at 35% 30%, #eef2f4, #9aa6ac 75%);
+    border:2px solid #7c8790;
+  }
+  .visor{
+    position:absolute; top:34px; left:50%; transform:translateX(-50%);
+    width:130px; height:52px; background:#202a31; border-radius:18px;
+    display:flex; align-items:center; justify-content:center; gap:22px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.6);
+  }
+  .eye{
+    width:26px; height:26px; border-radius:50%;
+    background:radial-gradient(circle at 38% 32%, #dff7ff, #5fc6e8 45%, #1b6f8c 78%, #0c3b4c 100%);
+    position:relative; box-shadow:0 0 6px rgba(95,198,232,.55);
+    animation:blink 5s ease-in-out infinite;
+  }
+  .eye.right{ animation-delay:.2s; }
+  .eye::after{
+    content:""; position:absolute; top:6px; left:6px; width:6px; height:6px;
+    border-radius:50%; background:rgba(255,255,255,.85);
+  }
+  @keyframes blink{ 0%,94%,100%{ transform:scaleY(1); } 97%{ transform:scaleY(.15); } }
+  .ir-sensor{
+    position:absolute; bottom:12px; left:50%; transform:translateX(-50%);
+    width:22px; height:6px; background:#b23b3b; border-radius:3px; opacity:.85;
+  }
+  .neck{ width:20px; height:10px; background:#97a3aa; border-radius:3px; }
+  .body{
+    width:200px; height:138px;
+    background:linear-gradient(155deg,#fbfcfd 0%,#dde5e8 60%,#c6cfd4 100%);
+    border-radius:24px; border:3px solid #97a3aa; position:relative;
+    display:flex; align-items:center; justify-content:center;
+    box-shadow:inset 0 -12px 18px rgba(0,0,0,.05), 0 4px 8px rgba(0,0,0,.08);
+  }
+  .panel{
+    width:110px; height:74px; background:#202a31; border-radius:12px;
+    display:flex; flex-direction:column; align-items:center; justify-content:center; gap:8px;
+    box-shadow:inset 0 2px 6px rgba(0,0,0,.6);
+  }
+  .panel-row{ display:flex; gap:10px; }
+  .led{ width:9px; height:9px; border-radius:50%; animation:pulse 1.8s ease-in-out infinite; }
+  .led.g{ background:#57e389; box-shadow:0 0 6px #57e389; }
+  .led.y{ background:#ffd76f; box-shadow:0 0 6px #ffd76f; animation-delay:.3s; }
+  .led.r{ background:#ff6b6b; box-shadow:0 0 6px #ff6b6b; animation-delay:.6s; }
+  @keyframes pulse{ 0%,100%{ opacity:1; transform:scale(1); } 50%{ opacity:.45; transform:scale(.85); } }
+  .panel-bars{ display:flex; align-items:flex-end; gap:3px; height:16px; }
+  .panel-bars span{ width:4px; background:#4fd1ff; border-radius:1px; animation:eq 1.2s ease-in-out infinite; }
+  .panel-bars span:nth-child(1){ height:40%; animation-delay:0s; }
+  .panel-bars span:nth-child(2){ height:80%; animation-delay:.15s; }
+  .panel-bars span:nth-child(3){ height:55%; animation-delay:.3s; }
+  .panel-bars span:nth-child(4){ height:90%; animation-delay:.45s; }
+  .panel-bars span:nth-child(5){ height:35%; animation-delay:.6s; }
+  @keyframes eq{ 0%,100%{ transform:scaleY(1); } 50%{ transform:scaleY(.4); } }
+  .arm{
+    width:13px; height:46px; background:linear-gradient(180deg,#cfd8dd,#97a3aa);
+    border-radius:6px; position:absolute; top:26px; border:2px solid #8a97a0;
+  }
+  .arm.left{ left:-18px; } .arm.right{ right:-18px; }
+  .feet{ display:flex; gap:10px; margin-top:6px; }
+  .foot{
+    width:30px; height:12px; background:linear-gradient(180deg,#cfd8dd,#97a3aa);
+    border-radius:6px; border:2px solid #8a97a0;
+  }
+
+  .byte-wrap.state-sleep .eye{ animation:none; transform:scaleY(.12); box-shadow:none; opacity:.5; }
+  .byte-wrap.state-sleep .antenna-ball{ animation:none; opacity:.3; box-shadow:none; }
+  .byte-wrap.state-sleep .led{ animation:none; opacity:.15; }
+  .byte-wrap.state-sleep .panel-bars span{ animation:none; height:15%; opacity:.2; }
+  .byte-wrap.state-sleep .robot{ animation:none; }
+
+  .byte-wrap.state-fail .led.g, .byte-wrap.state-fail .led.y{ opacity:.12; animation:none; }
+  .byte-wrap.state-fail .led.r{ animation:pulse .5s ease-in-out infinite; }
+  .byte-wrap.state-fail .robot{ animation:shake-robot .4s ease; }
+  @keyframes shake-robot{ 0%,100%{ transform:translate(-50%,-50%);} 25%{ transform:translate(calc(-50% - 5px),-50%);} 75%{ transform:translate(calc(-50% + 5px),-50%);} }
+
+  .byte-wrap.state-confused .eye{ transform:scaleY(.55) translateY(2px); animation:none; }
+  .byte-wrap.state-confused .robot{ animation:tilt-robot 1.6s ease-in-out infinite; }
+  @keyframes tilt-robot{
+    0%,100%{ transform:translate(-50%,-50%) rotate(0deg); }
+    50%{ transform:translate(-50%,-50%) rotate(-4deg) translateY(-6px); }
+  }
+
+  .byte-wrap.state-excited .robot{ animation:excited-bounce .5s ease-in-out infinite; }
+  @keyframes excited-bounce{
+    0%,100%{ transform:translate(-50%,-50%) translateY(0) scale(1); }
+    50%{ transform:translate(-50%,-50%) translateY(-16px) scale(1.03); }
+  }
+  .byte-wrap.state-excited .led{ animation:pulse .6s ease-in-out infinite; }
+  .byte-wrap.state-excited .antenna-ball{ animation:blink-light .6s ease-in-out infinite; }
+
+  .byte-wrap.tappable{ cursor:pointer; }
+
+  footer.credits{
+    margin-top:22px; font-size:12px; color:var(--ink-dim); opacity:.6; text-align:center;
+  }
+</style>
+</head>
+<body>
+
+<div id="particles" aria-hidden="true"></div>
+<div id="confetti-layer" aria-hidden="true"></div>
+<div aria-live="polite" class="sr-only" id="live-region"></div>
+
+<div id="app">
+
+  <div class="topbar">
+    <div class="brand"><span class="dot"></span> BuildBots Lab</div>
+    <button class="icon-btn" id="mute-btn" aria-pressed="false" aria-label="Mute sound">🔊</button>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">Byte's Story</div>
+    <div class="progress-dots" id="progress-dots"></div>
+  </div>
+
+  <main id="scene-root" tabindex="-1"></main>
+
+  <div class="nav-row">
+    <button class="btn ghost" id="back-btn">← Back</button>
+    <button class="btn primary" id="next-btn">Next →</button>
+  </div>
+
+  <footer class="credits">Byte the robot © BuildBots AI · design reused from the official Byte mascot</footer>
+</div>
+
+<script>
+(function(){
+  "use strict";
+
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  if(reduceMotion){ document.body.classList.add('reduce-motion'); }
+
+  var audioCtx = null, muted = false;
+  function ensureCtx(){
+    if(!audioCtx){
+      try{ audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }catch(e){ audioCtx = null; }
+    }
+    return audioCtx;
+  }
+  function beep(freq, dur, type){
+    if(muted) return;
+    var ctx = ensureCtx();
+    if(!ctx) return;
+    var osc = ctx.createOscillator();
+    var gain = ctx.createGain();
+    osc.type = type || 'sine';
+    osc.frequency.value = freq;
+    gain.gain.setValueAtTime(0.0001, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.12, ctx.currentTime + 0.02);
+    gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + dur);
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.start(); osc.stop(ctx.currentTime + dur + 0.02);
+  }
+  var sfx = {
+    wake: function(){ beep(660,.12); setTimeout(function(){beep(880,.14);},110); },
+    click: function(){ beep(520,.06); },
+    fail: function(){ beep(180,.18,'sawtooth'); },
+    success: function(){ beep(660,.1); setTimeout(function(){beep(880,.1);},90); setTimeout(function(){beep(1100,.16);},180); },
+    chime: function(){ beep(990,.14); }
+  };
+  var muteBtn = document.getElementById('mute-btn');
+  muteBtn.addEventListener('click', function(){
+    muted = !muted;
+    muteBtn.setAttribute('aria-pressed', String(muted));
+    muteBtn.textContent = muted ? '🔇' : '🔊';
+    muteBtn.setAttribute('aria-label', muted ? 'Unmute sound' : 'Mute sound');
+    if(!muted){ ensureCtx(); }
+  });
+
+  function announce(msg){
+    var lr = document.getElementById('live-region');
+    lr.textContent = '';
+    setTimeout(function(){ lr.textContent = msg; }, 30);
+  }
+
+  (function initParticles(){
+    var layer = document.getElementById('particles');
+    var count = reduceMotion ? 0 : 16;
+    for(var i=0;i<count;i++){
+      var p = document.createElement('div');
+      p.className = 'particle';
+      var size = 2 + Math.random()*3;
+      p.style.width = size+'px'; p.style.height = size+'px';
+      p.style.left = (Math.random()*100)+'%';
+      p.style.setProperty('--dx', (Math.random()*60-30)+'px');
+      var dur = 9 + Math.random()*10;
+      p.style.animationDuration = dur+'s';
+      p.style.animationDelay = (-Math.random()*dur)+'s';
+      layer.appendChild(p);
+    }
+  })();
+
+  function confettiBurst(n){
+    if(reduceMotion) return;
+    var layer = document.getElementById('confetti-layer');
+    var colors = ['#4fd1ff','#ffd76f','#57e389','#ff8a65','#ff6b6b'];
+    for(var i=0;i<(n||60);i++){
+      var c = document.createElement('div');
+      c.className = 'confetto';
+      c.style.left = (Math.random()*100)+'%';
+      c.style.background = colors[Math.floor(Math.random()*colors.length)];
+      c.style.animationDuration = (2.2 + Math.random()*1.6)+'s';
+      c.style.transform = 'rotate('+Math.floor(Math.random()*360)+'deg)';
+      layer.appendChild(c);
+      (function(node){ setTimeout(function(){ node.remove(); }, 4200); })(c);
+    }
+  }
+
+  function robotMarkup(){
+    return ''+
+    '<div class="antenna"><div class="antenna-ball"></div></div>'+
+    '<div class="head">'+
+      '<div class="screw tl"></div><div class="screw tr"></div>'+
+      '<div class="screw bl"></div><div class="screw br"></div>'+
+      '<div class="ultrasonic"><div class="ultrasonic-cap"></div><div class="ultrasonic-cap"></div></div>'+
+      '<div class="visor"><div class="eye left"></div><div class="eye right"></div></div>'+
+      '<div class="ir-sensor"></div>'+
+    '</div>'+
+    '<div class="neck"></div>'+
+    '<div class="body">'+
+      '<div class="arm left"></div><div class="arm right"></div>'+
+      '<div class="panel">'+
+        '<div class="panel-row"><div class="led g"></div><div class="led y"></div><div class="led r"></div></div>'+
+        '<div class="panel-bars"><span></span><span></span><span></span><span></span><span></span></div>'+
+      '</div>'+
+    '</div>'+
+    '<div class="feet"><div class="foot"></div><div class="foot"></div></div>';
+  }
+
+  function byteStageHTML(opts){
+    opts = opts || {};
+    var state = opts.state || 'idle';
+    return ''+
+    '<div class="byte-stage">'+
+      '<div class="radar-ring r1"></div><div class="radar-ring r2"></div><div class="radar-ring r3"></div>'+
+      '<div class="radar-sweep"></div>'+
+      '<div class="byte-wrap state-'+state+'" id="byte-wrap">'+
+        '<div class="speech" id="byte-speech">'+(opts.speech||'')+'</div>'+
+        '<div class="robot-stage"><div class="robot" id="byte-robot">'+robotMarkup()+'</div></div>'+
+      '</div>'+
+    '</div>';
+  }
+
+  function setByteState(state){
+    var wrap = document.getElementById('byte-wrap');
+    if(!wrap) return;
+    wrap.className = 'byte-wrap state-'+state;
+  }
+  function saySpeech(text, holdMs){
+    var sp = document.getElementById('byte-speech');
+    if(!sp) return;
+    sp.textContent = text;
+    sp.classList.add('show');
+    announce(text);
+    if(holdMs){ setTimeout(function(){ sp.classList.remove('show'); }, holdMs); }
+  }
+
+  var sceneIndex = 0;
+  var completed = {};
+
+  var root = document.getElementById('scene-root');
+  var nextBtn = document.getElementById('next-btn');
+  var backBtn = document.getElementById('back-btn');
+  var dotsWrap = document.getElementById('progress-dots');
+
+  var scenes = [
+    { id:'signal',    kicker:'Chapter 1', title:'A Mysterious Signal', build:buildSignal },
+    { id:'meet',       kicker:'Chapter 2', title:'Meet Byte', build:buildMeet },
+    { id:'origin',     kicker:'Chapter 3', title:'Where Byte Came From', build:buildOrigin },
+    { id:'problem',    kicker:'Chapter 4', title:"Byte's First Big Problem", build:buildProblem },
+    { id:'discover',   kicker:'Chapter 5', title:'Byte Discovers Inventors', build:buildDiscover },
+    { id:'rules',      kicker:'Chapter 6', title:"Byte's Inventor Rules", build:buildRules },
+    { id:'dream',      kicker:'Chapter 7', title:"Byte's Big Dream", build:buildDream },
+    { id:'invite',     kicker:'Chapter 8', title:'The Invitation', build:buildInvite },
+    { id:'mission',    kicker:'Chapter 9', title:"Byte's First Mission", build:buildMission },
+    { id:'welcome',    kicker:'Chapter 10', title:'Welcome to BuildBots', build:buildWelcome }
+  ];
+
+  function renderDots(){
+    dotsWrap.innerHTML = '';
+    scenes.forEach(function(s, i){
+      var d = document.createElement('span');
+      if(i < sceneIndex) d.classList.add('done');
+      if(i === sceneIndex) d.classList.add('current');
+      dotsWrap.appendChild(d);
+    });
+  }
+
+  function markComplete(id){
+    completed[id] = true;
+    updateNav();
+  }
+
+  function updateNav(){
+    var scene = scenes[sceneIndex];
+    var needsInteraction = scene.interactive && !completed[scene.id];
+    nextBtn.disabled = !!needsInteraction;
+    nextBtn.textContent = sceneIndex === scenes.length - 1 ? 'Finish 🎉' : 'Next →';
+    backBtn.style.visibility = sceneIndex === 0 ? 'hidden' : 'visible';
+  }
+
+  function renderScene(){
+    var scene = scenes[sceneIndex];
+    root.innerHTML = '';
+    var card = document.createElement('div');
+    card.className = 'scene-card';
+    root.appendChild(card);
+    scene.interactive = false;
+    scene.build(card, scene);
+    renderDots();
+    updateNav();
+    root.focus();
+  }
+
+  nextBtn.addEventListener('click', function(){
+    sfx.click();
+    if(sceneIndex < scenes.length - 1){
+      sceneIndex++;
+      renderScene();
+    } else {
+      sceneIndex = 0;
+      completed = {};
+      renderScene();
+    }
+  });
+  backBtn.addEventListener('click', function(){
+    sfx.click();
+    if(sceneIndex > 0){ sceneIndex--; renderScene(); }
+  });
+
+  function makeHeader(card, scene){
+    var kick = document.createElement('div'); kick.className='kicker'; kick.textContent = scene.kicker;
+    var h = document.createElement('h2'); h.className='scene-title'; h.textContent = scene.title;
+    card.appendChild(kick); card.appendChild(h);
+  }
+  function makeBody(card, html){
+    var p = document.createElement('div'); p.className='scene-body'; p.innerHTML = html;
+    card.appendChild(p);
+    return p;
+  }
+  function makeControls(card){
+    var c = document.createElement('div'); c.className='controls';
+    card.appendChild(c);
+    return c;
+  }
+
+  function buildSignal(card, scene){
+    makeHeader(card, scene);
+    makeBody(card, 'Something is beeping in the BuildBots Lab...<br>Tap the glowing light to find out what it is!');
+    var stage = document.createElement('div');
+    stage.innerHTML = byteStageHTML({ state:'sleep' });
+    card.appendChild(stage);
+
+    var wrap = document.getElementById('byte-wrap');
+    wrap.classList.add('tappable');
+    var hint = document.createElement('div');
+    hint.className = 'tap-hint';
+    hint.style.cssText = 'width:20px;height:20px;left:50%;top:0;transform:translate(-50%,-10px);';
+    document.querySelector('.byte-wrap').appendChild(hint);
+
+    var btn = document.createElement('button');
+    btn.className = 'tap-target';
+    btn.style.cssText = 'width:60px;height:60px;left:50%;top:-6px;transform:translate(-50%,-40px);';
+    btn.setAttribute('aria-label','Tap to wake up the blinking light');
+    document.querySelector('.byte-wrap').appendChild(btn);
+
+    scene.interactive = true;
+    btn.addEventListener('click', function(){
+      if(completed[scene.id]) return;
+      sfx.wake();
+      setByteState('excited');
+      saySpeech('Beep... beep... WHOOPS!', 2600);
+      hint.remove();
+      btn.disabled = true;
+      setTimeout(function(){
+        setByteState('idle');
+        saySpeech('Oh! Hello! You found me!', 3200);
+        markComplete(scene.id);
+      }, 900);
+    });
+  }
+
+  function buildMeet(card, scene){
+    makeHeader(card, scene);
+    makeBody(card, "Hi, I'm <strong>Byte</strong>! I live in the BuildBots Lab and I LOVE figuring out how things work. Tap a card to learn more about me!");
+    var stageWrap = document.createElement('div');
+    stageWrap.innerHTML = byteStageHTML({ state:'idle' });
+    card.appendChild(stageWrap);
+
+    var traits = [
+      { emoji:'🔍', label:'Curious', back:'I ask a hundred questions a day. Why is the sky blue? Why do wheels roll? WHY NOT MORE WHEELS?' },
+      { emoji:'🎈', label:'Playful', back:'I press buttons just to see what happens. Sometimes... oops.' },
+      { emoji:'🛠️', label:'Inventive', back:'I build wild gadgets out of spare parts, bent wire, and a LOT of tape.' }
+    ];
+    var grid = document.createElement('div'); grid.className='card-grid';
+    traits.forEach(function(t, i){
+      var fc = document.createElement('div');
+      fc.className = 'flip-card';
+      fc.setAttribute('tabindex','0');
+      fc.setAttribute('role','button');
+      fc.setAttribute('aria-label', t.label + ' — tap to learn more');
+      fc.innerHTML =
+        '<div class="flip-card-inner">'+
+          '<div class="flip-face flip-front"><div class="emoji">'+t.emoji+'</div><div class="label">'+t.label+'</div></div>'+
+          '<div class="flip-face flip-back">'+t.back+'</div>'+
+        '</div>';
+      function flip(){ fc.classList.toggle('flipped'); sfx.click(); flags[i]=true; checkDone(); }
+      fc.addEventListener('click', flip);
+      fc.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); flip(); } });
+      grid.appendChild(fc);
+    });
+    card.appendChild(grid);
+
+    var flags = [false,false,false];
+    scene.interactive = true;
+    function checkDone(){
+      if(flags[0] && flags[1] && flags[2] && !completed[scene.id]){
+        saySpeech("That's me!", 2400);
+        markComplete(scene.id);
+      }
+    }
+  }
+
+  function buildOrigin(card, scene){
+    makeHeader(card, scene);
+    var beats = [
+      "Long ago, the BuildBots Lab was quiet. No robots. No blinking lights. Just tools, waiting to be used.",
+      "One night, a curious inventor connected the very last wire... and — BEEP — I woke up!",
+      "I opened my eyes, looked around at all those tools, and thought: 'I want to build EVERYTHING.'"
+    ];
+    var stageWrap = document.createElement('div');
+    stageWrap.innerHTML = byteStageHTML({ state: reduceMotion? 'idle':'sleep' });
+    card.appendChild(stageWrap);
+    var bodyEl = makeBody(card, beats[0]);
+    var controls = makeControls(card);
+    var contBtn = document.createElement('button');
+    contBtn.className = 'btn primary';
+    contBtn.textContent = 'Continue';
+    controls.appendChild(contBtn);
+
+    var i = 0;
+    scene.interactive = true;
+    contBtn.addEventListener('click', function(){
+      sfx.click();
+      i++;
+      if(i === 1){ setByteState('idle'); sfx.wake(); saySpeech('BEEP!', 1600); }
+      if(i < beats.length){
+        bodyEl.innerHTML = beats[i];
+      }
+      if(i === beats.length - 1){
+        setByteState('excited');
+        contBtn.textContent = 'Got it!';
+      }
+      if(i >= beats.length - 1){
+        contBtn.onclick = function(){
+          sfx.click();
+          markComplete(scene.id);
+          contBtn.disabled = true;
+          contBtn.textContent = 'Continue';
+        };
+      }
+    });
+  }
+
+  function buildProblem(card, scene){
+    makeHeader(card, scene);
+    var bodyEl = makeBody(card, "My very first invention was... a light that would not turn on.<br>Tap the power button and see what happens.");
+    var stageWrap = document.createElement('div');
+    stageWrap.innerHTML = byteStageHTML({ state:'idle' });
+    card.appendChild(stageWrap);
+
+    var controls = makeControls(card);
+    var powerBtn = document.createElement('button');
+    powerBtn.className = 'btn primary';
+    powerBtn.textContent = '⚡ Press Power Button';
+    controls.appendChild(powerBtn);
+
+    var stage = 0;
+    scene.interactive = true;
+
+    powerBtn.addEventListener('click', function(){
+      sfx.click();
+      if(stage === 0){
+        stage = 1;
+        setByteState('fail');
+        sfx.fail();
+        saySpeech("Hmm... that didn't work.", 2400);
+        bodyEl.innerHTML = "Nothing happened! That's strange...<br><strong>Tap Byte's antenna</strong> to investigate the wire.";
+        powerBtn.style.display = 'none';
+        addAntennaFix();
+      }
+    });
+
+    function addAntennaFix(){
+      var wrap = document.getElementById('byte-wrap');
+      wrap.classList.add('tappable');
+      var hint = document.createElement('div');
+      hint.className = 'tap-hint';
+      hint.style.cssText = 'width:20px;height:20px;left:50%;top:0;transform:translate(-50%,-10px);';
+      wrap.appendChild(hint);
+      var fixBtn = document.createElement('button');
+      fixBtn.className = 'tap-target';
+      fixBtn.style.cssText = 'width:60px;height:60px;left:50%;top:-6px;transform:translate(-50%,-40px);';
+      fixBtn.setAttribute('aria-label','Tap the antenna to investigate the loose wire');
+      wrap.appendChild(fixBtn);
+
+      fixBtn.addEventListener('click', function(){
+        if(stage !== 1) return;
+        stage = 2;
+        hint.remove();
+        fixBtn.disabled = true;
+        setByteState('excited');
+        sfx.success();
+        saySpeech('AHA! A loose wire!', 2600);
+        bodyEl.innerHTML = "Found it — a loose wire! Byte reconnects it and... the light turns on!<br><strong>Mistakes are just clues.</strong> Every inventor gets them.";
+        markComplete(scene.id);
+      });
+    }
+  }
+
+  function buildDiscover(card, scene){
+    makeHeader(card, scene);
+    var beats = [
+      "After a hundred oopses, Byte realized something...",
+      "He didn't have to invent all alone. Somewhere out there were brave young inventors, ready to try new things.",
+      "Byte looked closer... and closer... "
+    ];
+    var stageWrap = document.createElement('div');
+    stageWrap.innerHTML = byteStageHTML({ state:'confused' });
+    card.appendChild(stageWrap);
+    var bodyEl = makeBody(card, beats[0]);
+    var controls = makeControls(card);
+    var contBtn = document.createElement('button');
+    contBtn.className = 'btn primary';
+    contBtn.textContent = 'Continue';
+    controls.appendChild(contBtn);
+
+    var i = 0;
+    scene.interactive = true;
+    contBtn.addEventListener('click', function(){
+      sfx.click();
+      if(i < beats.length - 1){
+        i++;
+        bodyEl.innerHTML = beats[i];
+        if(i === beats.length -1){
+          contBtn.textContent = "It's me!";
+        }
+        return;
+      }
+      setByteState('excited');
+      sfx.success();
+      saySpeech('I found YOU!', 2600);
+      bodyEl.innerHTML = "Byte found <strong>you</strong>! A real inventor, ready to explore the BuildBots Lab together.";
+      contBtn.disabled = true;
+      markComplete(scene.id);
+    });
+  }
+
+  function buildRules(card, scene){
+    makeHeader(card, scene);
+    makeBody(card, 'Every great inventor follows a few simple rules. Tap each one to reveal it, in order!');
+    var stageWrap = document.createElement('div');
+    stageWrap.innerHTML = byteStageHTML({ state:'idle' });
+    card.appendChild(stageWrap);
+
+    var rules = [
+      { t:'Try it.', s:'Give your idea a go, even if it might not work.' },
+      { t:"If it doesn't work, investigate.", s:'Look closely. What happened?' },
+      { t:'Ask "why?"', s:'Curiosity finds the answer.' },
+      { t:'Try again.', s:'Inventors don\u2019t stop at the first try.' },
+      { t:'Celebrate the discovery!', s:'Every attempt teaches you something. That\u2019s worth celebrating.' }
+    ];
+    var wrap = document.createElement('div'); wrap.className = 'rule-row';
+    card.appendChild(wrap);
+
+    var revealedCount = 0;
+    scene.interactive = true;
+
+    rules.forEach(function(r, idx){
+      var item = document.createElement('div');
+      item.className = 'rule-item';
+      item.setAttribute('tabindex','0');
+      item.setAttribute('role','button');
+      item.setAttribute('aria-label', 'Rule ' + (idx+1) + ', tap to reveal');
+      item.innerHTML = '<div class="rule-num">'+(idx+1)+'</div><div class="rule-text">Tap to reveal Rule '+(idx+1)+'</div>';
+      wrap.appendChild(item);
+
+      function reveal(){
+        if(item.classList.contains('revealed')) return;
+        if(idx > revealedCount) { saySpeech('Try rule '+(revealedCount+1)+' first!', 1800); return; }
+        item.classList.add('revealed');
+        item.querySelector('.rule-text').innerHTML = r.t + '<small>'+r.s+'</small>';
+        sfx.chime();
+        revealedCount++;
+        if(revealedCount === rules.length){
+          setByteState('excited');
+          saySpeech('Now you know my rules!', 2600);
+          markComplete(scene.id);
+        }
+      }
+      item.addEventListener('click', reveal);
+      item.addEventListener('keydown', function(e){ if(e.key==='Enter'||e.key===' '){ e.preventDefault(); reveal(); } });
+    });
+  }
+
+  function buildDream(card, scene){
+    makeHeader(card, scene);
+    makeBody(card, "Someday, I want to become the <strong>greatest Inventor's Assistant</strong> in the whole BuildBots Lab.<br><br>But I can't do it alone... I need YOU.");
+    var stageWrap = document.createElement('div');
+    stageWrap.innerHTML = byteStageHTML({ state:'idle', speech:'' });
+    card.appendChild(stageWrap);
+    setTimeout(function(){ saySpeech('I need YOU.', 3000); }, 400);
+  }
+
+  function buildInvite(card, scene){
+    makeHeader(card, scene);
+    makeBody(card, 'Byte is powering up his biggest question yet...');
+    var stageWrap = document.createElement('div');
+    stageWrap.innerHTML = byteStageHTML({ state:'excited' });
+    card.appendChild(stageWrap);
+    setTimeout(function(){ saySpeech('Ready, Inventor?', 4000); }, 300);
+
+    var controls = makeControls(card);
+    var yes = document.createElement('button');
+    yes.className = 'btn primary'; yes.textContent = "Yes, let's go! 🚀";
+    controls.appendChild(yes);
+
+    scene.interactive = true;
+    yes.addEventListener('click', function(){
+      sfx.success();
+      saySpeech('YESSS! Let\'s build!', 2400);
+      yes.disabled = true;
+      markComplete(scene.id);
+    });
+  }
+
+  function buildMission(card, scene){
+    makeHeader(card, scene);
+    var bodyEl = makeBody(card, "Byte's power core is dim. Choose the right part to wake it up!");
+    var stageWrap = document.createElement('div');
+    stageWrap.innerHTML = byteStageHTML({ state:'sleep' });
+    card.appendChild(stageWrap);
+
+    var parts = [
+      { emoji:'🔋', name:'Battery', correct:true },
+      { emoji:'🍌', name:'Banana', correct:false },
+      { emoji:'🦆', name:'Rubber Duck', correct:false }
+    ];
+    parts.sort(function(){ return Math.random()-0.5; });
+
+    var grid = document.createElement('div'); grid.className='part-grid';
+    card.appendChild(grid);
+
+    scene.interactive = true;
+    var solved = false;
+
+    parts.forEach(function(p){
+      var b = document.createElement('button');
+      b.className = 'part-btn';
+      b.innerHTML = p.emoji + '<span class="name">'+p.name+'</span>';
+      b.setAttribute('aria-label', p.name);
+      grid.appendChild(b);
+      b.addEventListener('click', function(){
+        if(solved) return;
+        if(p.correct){
+          solved = true;
+          b.classList.add('correct-flash');
+          setByteState('excited');
+          sfx.success();
+          confettiBurst(50);
+          saySpeech('Power core: ONLINE!', 2800);
+          bodyEl.innerHTML = "The battery clicks in and Byte's power core glows bright. You did it!";
+          markComplete(scene.id);
+        } else {
+          b.classList.add('wrong-flash');
+          sfx.fail();
+          saySpeech("Hmm, that's not it...", 1600);
+          setTimeout(function(){ b.classList.remove('wrong-flash'); }, 450);
+        }
+      });
+    });
+  }
+
+  function buildWelcome(card, scene){
+    makeHeader(card, scene);
+    var badge = document.createElement('div');
+    badge.className = 'badge';
+    badge.setAttribute('role','img');
+    badge.setAttribute('aria-label','First Inventor Badge');
+    badge.textContent = '⭐';
+    card.appendChild(badge);
+    makeBody(card, "<strong>Byte + You = Inventor Team!</strong><br>You just earned your First Inventor Badge. Welcome to BuildBots — the adventure is only getting started.");
+    var stageWrap = document.createElement('div');
+    stageWrap.innerHTML = byteStageHTML({ state:'excited' });
+    card.appendChild(stageWrap);
+    setTimeout(function(){ saySpeech('Welcome, Inventor!', 5000); }, 300);
+    confettiBurst(90);
+  }
+
+  renderScene();
+
+})();
+</script>
+</body>
+</html>

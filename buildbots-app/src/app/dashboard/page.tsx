@@ -99,7 +99,36 @@ export default function DashboardPage() {
         </header>
 
         <div className="p-4 md:p-8 max-w-7xl mx-auto space-y-6 md:space-y-8">
-          {/* WELCOME BANNER */}
+          {/* TODAY'S FIRST CLASS FEATURED BANNER — MEET BYTE */}
+          <div className="p-5 md:p-6 rounded-2xl md:rounded-3xl bg-gradient-to-r from-cyan-950 via-slate-900 to-emerald-950 border-2 border-cyan-400/50 shadow-2xl relative overflow-hidden animate-pulse">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 relative z-10">
+              <div className="flex items-center gap-3 md:gap-4">
+                <div className="w-12 h-12 md:w-14 md:h-14 rounded-2xl bg-cyan-400/20 border border-cyan-400/40 text-3xl flex items-center justify-center shrink-0">
+                  🤖
+                </div>
+                <div>
+                  <div className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-cyan-400/20 text-cyan-300 text-[10px] md:text-xs font-black uppercase tracking-wider mb-1">
+                    ⭐ TODAY'S FIRST CLASS SPECIAL
+                  </div>
+                  <h3 className="text-lg md:text-2xl font-black text-white leading-tight">
+                    Meet Byte — Amazing Intro to Robot Companion!
+                  </h3>
+                  <p className="text-xs md:text-sm text-slate-300 mt-0.5">
+                    Discover Byte's secret signal, learn the 5 Inventor Rules & earn your 1st Badge today!
+                  </p>
+                </div>
+              </div>
+
+              <a
+                href="/meet-byte.html"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto text-center px-6 py-3 rounded-full font-black text-xs md:text-sm bg-gradient-to-r from-cyan-400 via-teal-300 to-emerald-400 text-slate-950 hover:scale-105 hover:shadow-lg hover:shadow-cyan-500/40 transition-all shrink-0 flex items-center justify-center gap-2"
+              >
+                Launch Intro to Byte 🚀
+              </a>
+            </div>
+          </div>
           <div className="p-5 md:p-8 rounded-2xl md:rounded-3xl bg-gradient-to-br from-slate-900 via-slate-900/90 to-cyan-950/40 border border-cyan-500/30 relative overflow-hidden shadow-2xl">
             <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
               <div>

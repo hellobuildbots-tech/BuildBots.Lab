@@ -12,6 +12,18 @@ export default function LessonLibraryPage() {
 
   const lessons = [
     {
+      id: 'meet-byte',
+      month: 1,
+      classNumber: 0,
+      title: "⭐ Meet Byte — Amazing Robot Companion Intro!",
+      description: "Today's First Class Special! Wake up Byte, discover secret signals, learn the 5 Inventor Rules, and power up his energy core!",
+      difficulty: 'Beginner',
+      duration: '15 Mins',
+      completed: true,
+      unlocked: true,
+      path: '/meet-byte.html'
+    },
+    {
       id: 'class-1',
       month: 1,
       classNumber: 1,
