@@ -25,7 +25,7 @@ export default function ClassSessionPage() {
     <div className="min-h-screen bg-[#08121E] text-white flex selection:bg-cyan-500 selection:text-slate-950">
       <CRMAppSidebar role="teacher" />
 
-      <main className="flex-1 pl-64 min-h-screen">
+      <main className="flex-1 md:pl-64 pl-0 pt-16 md:pt-0 pb-20 md:pb-0 min-h-screen w-full">
         <header className="h-20 border-b border-cyan-500/15 px-8 flex items-center justify-between bg-[#08121E]/80 backdrop-blur-md sticky top-0 z-30">
           <div className="flex items-center gap-4">
             <Link href="/teacher" className="p-2 rounded-xl bg-slate-800 text-slate-400 hover:text-white">

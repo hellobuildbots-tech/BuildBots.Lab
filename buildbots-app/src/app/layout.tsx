@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
@@ -12,27 +12,40 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+export const viewport: Viewport = {
+  themeColor: "#08121E",
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  userScalable: false,
+};
+
 export const metadata: Metadata = {
-  title: "BuildBots AI — Next-Gen Robotics Academy",
-  description: "Interactive robotics CRM, game lessons, and student progress tracking for ages 7–14.",
+  title: "BuildBots AI — Next-Gen Student & Parent OS",
+  description: "Interactive robotics CRM, game lessons, PWA app, and student progress tracking for ages 7–14.",
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "BuildBots OS",
+  },
   icons: {
     icon: [
-      { url: "/favicon.ico" },
-      { url: "/favicon.png", type: "image/png" },
-      { url: "/no_bg_logo.png", type: "image/png" },
+      { url: "/icons/favicon.svg", type: "image/svg+xml" },
+      { url: "/logo.png", type: "image/png" },
     ],
-    shortcut: "/favicon.ico",
-    apple: "/no_bg_logo.png",
+    shortcut: "/logo.png",
+    apple: "/logo.png",
   },
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col bg-[#08121E] text-white">{children}</body>
     </html>
   );
 }
